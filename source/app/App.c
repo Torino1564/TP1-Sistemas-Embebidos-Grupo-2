@@ -1,7 +1,7 @@
 /***************************************************************************//**
   @file     App.c
-  @brief    Application functions
-  @author   Nicolás Magliola
+  @brief    Main Application
+  @author   Group 2
  ******************************************************************************/
 
 /*******************************************************************************
@@ -9,20 +9,18 @@
  ******************************************************************************/
 
 #include "board.h"
-#include "gpio.h"
-
-#include "SysTick.h"
-
+#include "StateMachine.h"
+#include "Peripherals"
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
 
 /*******************************************************************************
- * FUNCTION PROTOTYPES FOR PRIVATE FUNCTIONS WITH FILE LEVEL SCOPE
+ * GLOBAL STATE
  ******************************************************************************/
 
-static void delayLoop(uint32_t veces);
+static StateMachine stateMachine;
 
 
 /*******************************************************************************
@@ -31,38 +29,43 @@ static void delayLoop(uint32_t veces);
  *******************************************************************************
  ******************************************************************************/
 
-void SysTickCallback()
-{
-	gpioToggle(PIN_LED_BLUE);
-}
-
 /* Función que se llama 1 vez, al comienzo del programa */
 void App_Init (void)
 {
-    gpioMode(PIN_LED_BLUE, OUTPUT);
-    gpioMode(BUTTON_PIN, INPUT);
-    gpioSetupISR(BUTTON_PIN, FLAG_INT_POSEDGE, &SysTickCallback);
-    SysTick_Init(&SysTickCallback);
+	// Arrancar perifericos
+	initPeripherals();
 }
 
 /* Función que se llama constantemente en un ciclo infinito */
 void App_Run (void)
 {
-
+	switch (stateMachine.state)
+	{
+	case IDLE:
+		if (stateMachine.validID)
+		{
+			stateMachine.state = PIN;
+		}
+		break;
+	case PIN:
+		if (stateMachine.validPIN)
+		{
+			stateMachine.state = OPEN;
+		}
+		break;
+	case COOLDOWN:
+		if (stateMachine.cooldownTicks >= stateMachine.cooldownTime)
+		{
+			stateMachine.state = stateMachine.stateAfterCooldown;
+		}
+		break;
+	// OPCIONAL:
+	case ADMIN:
+	case CHANGE_PIN:
+	default:
+		break;
+	}
 }
-
-
-/*******************************************************************************
- *******************************************************************************
-                        LOCAL FUNCTION DEFINITIONS
- *******************************************************************************
- ******************************************************************************/
-
-static void delayLoop(uint32_t veces)
-{
-    while (veces--);
-}
-
 
 /*******************************************************************************
  ******************************************************************************/
