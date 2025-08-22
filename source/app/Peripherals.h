@@ -7,6 +7,9 @@
 #ifndef _PERIPHERALS_
 #define _PERIPHERALS_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 bool initPeripherals();
 
 // Encoder

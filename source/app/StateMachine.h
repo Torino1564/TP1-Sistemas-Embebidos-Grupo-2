@@ -19,21 +19,21 @@ enum States
 
 typedef struct {
 	// Estado actual
-	uint8_t state = IDLE;
-	uint8_t stateAfterCooldown = IDLE;
+	uint8_t state;
+	uint8_t stateAfterCooldown;
 
 	// Cooldown
-	uint8_t cooldownTime = 1000;
-	uint32_t cooldownTicks = 0;
+	uint8_t cooldownTime;
+	uint32_t cooldownTicks;
 
 	// Timeout
-	uint8_t maxTimeout = 10000;
-	uint32_t timeoutTicks = 0;
+	uint8_t maxTimeout;
+	uint32_t timeoutTicks;
 
 	// Variables
-	bool validID = 0;
-	bool validPIN = 0;
-	uint8_t remainingAttemps = 3;
+	bool validID;
+	bool validPIN;
+	uint8_t remainingAttemps;
 }
 StateMachine;
 

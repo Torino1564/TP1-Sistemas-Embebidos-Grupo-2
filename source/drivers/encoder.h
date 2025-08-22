@@ -4,8 +4,11 @@
   @author   Group 2
  ******************************************************************************/
 
+#include <stdbool.h>
+#include <stdint.h>
+
 typedef struct {
-	bool rotDir = 1; // 0 counter clockwise / 1 clockwise
-	uint32_t outA = 0;
-	uint32_t outB = 0;
+	bool rotDir; // 0 counter clockwise / 1 clockwise
+	uint32_t outA;
+	uint32_t outB;
 } encoder_t;
