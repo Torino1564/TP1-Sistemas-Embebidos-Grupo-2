@@ -18,13 +18,15 @@ typedef struct {
 } encoderChannel_t;
 
 typedef struct {
-	bool enable; // interrupts enable
 	pin_t pinA;
 	pin_t pinB;
-	bool dir; // 0 counter clockwise / 1 clockwise
+	unsigned int enable:1; // interrupts enable
+	unsigned int dir:1; // 0 counter clockwise / 1 clockwise
+	unsigned int actualA:1; // actual state of A
+	unsigned int actualB:1; // actual state of B
+	unsigned int prevA:1; // previous state of A
+	unsigned int prevB:1; // previous state of B
 	uint8_t ticks; // number of ticks in the same dir
-	encoderChannel_t actual; // actual state of the encoder
-	encoderChannel_t prev; // previous state of the encoder
 } encoder_t;
 
 
@@ -44,6 +46,6 @@ void encoder_updated(encoder_t * encoder);
 //para que obtenga el estado de A y B. Puede pasar que en algun momento se desactiven
 // las interrupciones del encoder y que por eso se pueda mover libremente el mismo y que
 // los movimientos no sean detectados y se pierde el valor de A y B.
-bool* getEncoderStatus(encoder_t *encoder);
+void getEncoderStatus(encoder_t *encoder);
 
 bool getEncoderDir(encoder_t *encoder);

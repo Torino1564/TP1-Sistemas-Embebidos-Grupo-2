@@ -35,22 +35,27 @@ void encoder_updated(encoder_t * encoder)
 	 * las interrupciones no deberian hacer nada. No se si es la mejor manera de hacerlo*/
 	if(encoder->enable)
 	{
-
+		getEncoderStatus(encoder); //actualizo los valores de A y B
 	}
 }
 
-bool* getEncoderStatus(encoder_t *encoder)
+void getEncoderStatus(encoder_t *encoder)
 {
-	encoder->prev = encoder->actual;
-	encoder->actual.encoderA = gpioRead(encoder->pinA);
-	encoder->actual.encoderB = gpioRead(encoder->pinB);
+	encoder->prevA = encoder->actualA;
+	encoder->prevB = encoder->actualB;
 
-	return (bool*) &encoder->actual;
+	encoder->actualA = gpioRead(encoder->pinA);
+	encoder->actualB = gpioRead(encoder->pinB);
 }
 
 bool getEncoderDir(encoder_t *encoder)
 {
 
 
-	//return resultado;
+//	switch()
+//	{
+//
+//	}
+
+	return 1;
 }
