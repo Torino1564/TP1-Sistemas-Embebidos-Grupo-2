@@ -5,26 +5,28 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * INCLUDE HEADER FILES
+ *                        INCLUDE HEADER FILES
  ******************************************************************************/
 
-#include "drivers/board.h"
 #include "StateMachine.h"
-#include "Peripherals.h"
+#include "Peripherals.h" //QUIZAS HABRIA QUE ELIMITAR ESTE Y METER TODO EN HARDWARE.H
+#include "hardware.h"
+#include "drivers/board.h"
+#include "drivers/encoder.h"
 #include "drivers/SysTick.h"
 
-#include "hardware.h"
-
 /*******************************************************************************
- * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
+ *             CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
 
 /*******************************************************************************
- * GLOBAL STATE
+ *                            GLOBAL STATE
  ******************************************************************************/
 
 static StateMachine stateMachine;
+
+static encoder_t encoder;
 
 
 /*******************************************************************************
@@ -46,24 +48,28 @@ void SysTickISR()
 	}
 }
 
-/* Función que se llama 1 vez, al comienzo del programa */
+/* Función de inicialización */
 void App_Init (void)
 {
 	hw_DisableInterrupts();
 
-	NVIC_EnableIRQ(PORTA_IRQn);
-
-	stateMachine.state = ADMIN;
 	// Arrancar perifericos
-	initPeripherals();
-
-	gpioMode(BUTTON_PIN, INPUT);
+	Peripherals_Init();
+	gpioMode(PIN_SW3, INPUT);
 	gpioMode(PIN_LED_BLUE, OUTPUT);
-
-	gpioSetupISR(BUTTON_PIN, FLAG_INT_POSEDGE, &ISR);
+	gpioSetupISR(PIN_SW3, FLAG_INT_POSEDGE, &ISR);
 	SysTick_Init(&SysTickISR);
 
+	// Estado inicial de la FSM
+	stateMachine.state = ADMIN;
+
+	// Habilito interrupciones por puerto
+	NVIC_EnableIRQ(PORTA_IRQn);
+
 	hw_EnableInterrupts();
+
+
+
 }
 
 /* Función que se llama constantemente en un ciclo infinito */

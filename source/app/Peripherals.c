@@ -8,7 +8,7 @@
 
 // Configure Peripherals
 
-bool initPeripherals()
+bool Peripherals_Init()
 {
 	// configura perifericos
 	return false;

@@ -138,15 +138,51 @@ __ISR__ PORTB_IRQHandler(void)
 
 __ISR__ PORTC_IRQHandler(void)
 {
+	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
+	uint32_t ISFR = portBase[PC]->ISFR;
+	uint8_t contador = 0;
+	while(!(ISFR & 0x01))
+	{
+		ISFR = ISFR>>1;
+		contador++;
+	}
+	//que debo hacer? borro el flag o no?
 
+	portBase[PC]->ISFR = 1<<contador;
+
+	callbackMatrix[PC*32 + contador]();
 }
 
 __ISR__ PORTD_IRQHandler(void)
 {
+	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
+	uint32_t ISFR = portBase[PD]->ISFR;
+	uint8_t contador = 0;
+	while(!(ISFR & 0x01))
+	{
+		ISFR = ISFR>>1;
+		contador++;
+	}
+	//que debo hacer? borro el flag o no?
 
+	portBase[PD]->ISFR = 1<<contador;
+
+	callbackMatrix[PD*32 + contador]();
 }
 
 __ISR__ PORTE_IRQHandler(void)
 {
+	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
+	uint32_t ISFR = portBase[PE]->ISFR;
+	uint8_t contador = 0;
+	while(!(ISFR & 0x01))
+	{
+		ISFR = ISFR>>1;
+		contador++;
+	}
+	//que debo hacer? borro el flag o no?
 
+	portBase[PE]->ISFR = 1<<contador;
+
+	callbackMatrix[PE*32 + contador]();
 }

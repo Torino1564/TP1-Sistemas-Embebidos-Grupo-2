@@ -13,6 +13,16 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "drivers/gpio.h"
+
+/*******************************************************************************
+ * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
+ * Acá van los defines que se vayan a utilizar en nuestra aplicación. Relación
+ * entre los pines, la kinetis y los drivers
+ ******************************************************************************/
+
+#define ENCODER_A PORTNUM2PIN(PC,16); // PTC16
+#define ENCODER_B PORTNUM2PIN(PC,17); // PTC17
 
 
 /*******************************************************************************

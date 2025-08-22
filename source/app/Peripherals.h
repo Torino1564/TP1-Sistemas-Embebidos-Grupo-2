@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-bool initPeripherals();
+bool Peripherals_Init();
 
 // Encoder
 void setEncoderEnable(bool value);
