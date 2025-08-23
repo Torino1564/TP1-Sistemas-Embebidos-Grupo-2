@@ -11,6 +11,11 @@
 //esta bien agregar el header board.h?
 #include "board.h"
 
+
+#define VUELTA_COMPLETA 4
+#define RIGHT 1
+#define LEFT 0
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
@@ -24,11 +29,6 @@ enum StatesEncoder
 };
 
 typedef struct {
-	bool encoderA; // pin A of the channel
-	bool encoderB; // pin B of the channel
-} encoderChannel_t;
-
-typedef struct {
 	pin_t pinA;
 	pin_t pinB;
 	unsigned int enable:1; // interrupts enable
@@ -38,6 +38,7 @@ typedef struct {
 	unsigned int prevA:1; // previous state of A
 	unsigned int prevB:1; // previous state of B
 	uint8_t ticks; // number of ticks in the same dir
+	uint8_t turns;
 } encoder_t;
 
 
@@ -51,7 +52,7 @@ bool encoder_init(encoder_t *encoder, pin_t senA, pin_t senB);
 /* Es una funcion que habilita o desahabilita el encoder */
 void encoder_enable(encoder_t * encoder, bool enable);
 
-void encoder_updated(encoder_t * encoder);
+void encoder_updated(void);
 
 //cada vez que se vaya a esperar una entrada del encoder hay que llamar esta funcion
 //para que obtenga el estado de A y B. Puede pasar que en algun momento se desactiven
