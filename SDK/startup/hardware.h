@@ -21,8 +21,8 @@
  * entre los pines, la kinetis y los drivers
  ******************************************************************************/
 
-#define ENCODER_A PORTNUM2PIN(PC,16); // PTC16
-#define ENCODER_B PORTNUM2PIN(PC,17); // PTC17
+#define ENCODER_A PORTNUM2PIN(PC,16) // PTC16
+#define ENCODER_B PORTNUM2PIN(PC,17) // PTC17
 
 
 /*******************************************************************************

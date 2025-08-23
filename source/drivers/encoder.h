@@ -8,9 +8,20 @@
 #include <stdint.h>
 #include "gpio.h"
 
+//esta bien agregar el header board.h?
+#include "board.h"
+
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
+
+enum StatesEncoder
+{
+	A0B0,
+	A0B1,
+	A1B0,
+	A1B1
+};
 
 typedef struct {
 	bool encoderA; // pin A of the channel

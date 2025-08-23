@@ -57,24 +57,32 @@ void App_Init (void)
 	Peripherals_Init();
 	gpioMode(PIN_SW3, INPUT);
 	gpioMode(PIN_LED_BLUE, OUTPUT);
+	gpioMode(PIN_LED_RED, OUTPUT);
 	gpioSetupISR(PIN_SW3, FLAG_INT_POSEDGE, &ISR);
 	SysTick_Init(&SysTickISR);
+	encoder_init(&encoder, ENCODER_A, ENCODER_B);
+	encoder_enable(&encoder, 1);
 
 	// Estado inicial de la FSM
 	stateMachine.state = ADMIN;
 
 	// Habilito interrupciones por puerto
 	NVIC_EnableIRQ(PORTA_IRQn);
+	NVIC_EnableIRQ(PORTB_IRQn);
+	NVIC_EnableIRQ(PORTC_IRQn);
+	NVIC_EnableIRQ(PORTD_IRQn);
 
 	hw_EnableInterrupts();
 
-
+	gpioWrite(PIN_LED_RED, LOW);
+	gpioWrite(PIN_LED_BLUE, LOW);
 
 }
 
 /* Función que se llama constantemente en un ciclo infinito */
 void App_Run (void)
 {
+
 //	switch (stateMachine.state)
 //	{
 //	case IDLE:
