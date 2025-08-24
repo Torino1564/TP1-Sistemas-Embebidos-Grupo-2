@@ -19,6 +19,8 @@ bool encoder_init(encoder_t *encoder, pin_t senA, pin_t senB)
 	encoder->enable = 0;
 	encoder->pinA = senA;
 	encoder->pinB = senB;
+	encoder->actualA = 1;
+	encoder->actualB = 1;
 	gpioMode(senA, INPUT);
 	gpioMode(senB, INPUT);
 
@@ -45,6 +47,19 @@ void encoder_updated(void)
 	getEncoderStatus(encoder_global);
 	getEncoderDir(encoder_global);
 }
+
+//void getEncoderStatus(encoder_t *encoder)
+//{
+//
+//	return;
+//}
+//
+//bool getEncoderDir(encoder_t *encoder)
+//{
+//	gpioWrite(PIN_LED_RED, gpioRead(encoder->pinA));
+//	gpioWrite(PIN_LED_BLUE, gpioRead(encoder->pinB));
+//	return 1;
+//}
 
 void getEncoderStatus(encoder_t *encoder)
 {
