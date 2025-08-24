@@ -31,12 +31,15 @@ enum StatesEncoder
 typedef struct {
 	pin_t pinA;
 	pin_t pinB;
-	unsigned int enable:1; // interrupts enable
-	unsigned int dir:1; // 0 counter clockwise / 1 clockwise
 	unsigned int actualA:1; // actual state of A
 	unsigned int actualB:1; // actual state of B
 	unsigned int prevA:1; // previous state of A
 	unsigned int prevB:1; // previous state of B
+	unsigned int enable:1; // interrupts enable
+	unsigned int ticksDir:1; // 0 counter clockwise / 1 clockwise
+	unsigned int prevTicksDir:1;
+	unsigned int turnsDir:1;
+	unsigned int prevTurnsDir:1;
 	uint8_t ticks; // number of ticks in the same dir
 	uint8_t turns;
 } encoder_t;
@@ -61,3 +64,6 @@ void encoder_updated(void);
 void getEncoderStatus(encoder_t *encoder);
 
 bool getEncoderDir(encoder_t *encoder);
+
+/*Funcion para resetear todas las variables del encoder*/
+//void encoder_reset(encoder_t * encoder);

@@ -62,11 +62,28 @@ bool getEncoderDir(encoder_t *encoder)
 
 	switch(state)
 	{
-	case A1B1:
+	case A1B1: // Si llego a 11 entonces puede haber una vuelta completa
 		if(encoder->ticks == VUELTA_COMPLETA)
 		{
-			encoder->ticks = 0;
-			if(encoder->dir == RIGHT)
+			if(encoder->turns == 0) // Primera vuelta?
+			{
+				encoder->turns++;
+				encoder->turnsDir = encoder->ticksDir;
+			}
+			else //No es la primera vuelta
+			{
+				encoder->prevTurnsDir = encoder->turnsDir;
+				encoder->turnsDir = encoder->ticksDir;
+				if(encoder->prevTurnsDir == encoder->turnsDir)
+				{
+					encoder->turns++;
+				}
+				else
+				{
+					encoder->turns--;
+				}
+			}
+			if(encoder->turnsDir == RIGHT)
 			{
 				gpioToggle(PIN_LED_RED);
 			}
@@ -74,146 +91,93 @@ bool getEncoderDir(encoder_t *encoder)
 			{
 				gpioToggle(PIN_LED_BLUE);
 			}
-			turns++;
+			encoder->ticks = 0;
 		}
-		else
+		else //Si no hubo vuelta completa no hago nada
 		{
 			encoder->ticks = 0;
-			turns = 0;
-		}
-		if(!encoder->actualA)
-		{
-			if(encoder->dir)
+			if(encoder->actualA == 0) // Si estando en AB = 11 pasa a AB = 01
 			{
+				encoder->prevTicksDir = encoder->ticksDir;
+				encoder->ticksDir = RIGHT;
 				encoder->ticks++;
+				return 1;
 			}
-			else
+			else if(encoder->actualB == 0) //Si estando en AB = 11 pasa a AB = 10
 			{
-				encoder->ticks = 1;
-			}
-			encoder->dir = 1;
-			gpioToggle(PIN_LED_RED);
-			return 1;
-		}
-		else if(!encoder->actualB)
-		{
-			/*La siguiente secuencia de if else solo tiene sentido si se usa
-			 * la propiedad ticks del encoder.*/
-			if(!encoder->dir)
-			{
+				encoder->prevTicksDir = encoder->ticksDir;
+				encoder->ticksDir = LEFT;
 				encoder->ticks++;
+				return 0;
 			}
-			else
-			{
-				encoder->ticks = 1;
-			}
-			encoder->dir = 0;
-			gpioToggle(PIN_LED_BLUE);
-			return 0;
 		}
-		break;
 
-	case A0B0:
-		if(encoder->actualA)
-		{
-			/*La siguiente secuencia de if else solo tiene sentido si se usa
-			 * la propiedad ticks del encoder.*/
-			if(encoder->dir)
-			{
-				encoder->ticks++;
-			}
-			else
-			{
-				encoder->ticks = 1;
-			}
-			encoder->dir = 1;
-			gpioToggle(PIN_LED_RED);
-			return 1;
-		}
-		else if(encoder->actualB)
-		{
-			/*La siguiente secuencia de if else solo tiene sentido si se usa
-			 * la propiedad ticks del encoder.*/
-			if(!encoder->dir)
-			{
-				encoder->ticks++;
-			}
-			else
-			{
-				encoder->ticks = 1;
-			}
-			encoder->dir = 0;
-			gpioToggle(PIN_LED_BLUE);
-			return 0;
-		}
 		break;
 
 	case A0B1:
-		if(!encoder->actualB)
+		if(encoder->actualB == 0) // Si estando en AB = 01 pasa a AB = 00
 		{
-			/*La siguiente secuencia de if else solo tiene sentido si se usa
-			 * la propiedad ticks del encoder.*/
-			if(encoder->dir)
-			{
-				encoder->ticks++;
-			}
-			else
-			{
-				encoder->ticks = 1;
-			}
-			encoder->dir = 1;
-			gpioToggle(PIN_LED_RED);
+			encoder->prevTicksDir = encoder->ticksDir;
+			encoder->ticksDir = RIGHT;
+			encoder->ticks++;
 			return 1;
 		}
-		else if(encoder->actualA)
+		else if(encoder->actualA == 1) //Si estando en AB = 01 pasa a AB = 11
 		{
-			/*La siguiente secuencia de if else solo tiene sentido si se usa
-			 * la propiedad ticks del encoder.*/
-			if(!encoder->dir)
-			{
-				encoder->ticks++;
-			}
-			else
-			{
-				encoder->ticks = 1;
-			}
-			encoder->dir = 0;
-			gpioToggle(PIN_LED_BLUE);
+			encoder->prevTicksDir = encoder->ticksDir;
+			encoder->ticksDir = LEFT;
+			encoder->ticks++;
 			return 0;
 		}
 		break;
 
-	case A1B0:
-		if(encoder->actualB)
+
+	case A0B0:
+		if(encoder->actualA == 1) //Si estando en AB = 00 pasa a AB = 10
 		{
-			/*La siguiente secuencia de if else solo tiene sentido si se usa
-			 * la propiedad ticks del encoder.*/
-			if(encoder->dir)
+			encoder->prevTicksDir = encoder->ticksDir;
+			encoder->ticksDir = RIGHT;
+			if(encoder->prevTicksDir == encoder->ticksDir)
 			{
 				encoder->ticks++;
 			}
 			else
 			{
-				encoder->ticks = 1;
+				encoder->ticks--;
 			}
-			encoder->dir = 1;
-			gpioToggle(PIN_LED_RED);
 			return 1;
 		}
-		else if(!encoder->actualA)
+		else if(encoder->actualB == 1) //Si estando en AB = 00 pasa a AB = 01
 		{
-			/*La siguiente secuencia de if else solo tiene sentido si se usa
-			 * la propiedad ticks del encoder.*/
-			if(!encoder->dir)
+			encoder->prevTicksDir = encoder->ticksDir;
+			encoder->ticksDir = LEFT;
+			if(encoder->prevTicksDir == encoder->ticksDir)
 			{
 				encoder->ticks++;
 			}
 			else
 			{
-				encoder->ticks = 1;
+				encoder->ticks--;
 			}
-			encoder->dir = 0;
-			gpioToggle(PIN_LED_BLUE);
+			return 0;
+		}
+		break;
+
+
+
+	case A1B0:
+		if(encoder->actualB == 1) //Si estando en AB = 10 pasa a AB = 11
+		{
+			encoder->prevTicksDir = encoder->ticksDir;
+			encoder->ticksDir = RIGHT;
+			encoder->ticks++;
+			return 1;
+		}
+		else if(encoder->actualA == 0) //Si estando en AB = 10 pasa a AB = 00
+		{
+			encoder->prevTicksDir = encoder->ticksDir;
+			encoder->ticksDir = LEFT;
+			encoder->ticks++;
 			return 0;
 		}
 		break;
