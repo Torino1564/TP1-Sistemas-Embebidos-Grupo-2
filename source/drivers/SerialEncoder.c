@@ -8,6 +8,7 @@
 #include "gpio.h"
 #include "SerialEncoder.h"
 #include "board.h"
+#include "hardware.h"
 
 // Global State
 static uint8_t* data;
@@ -34,7 +35,7 @@ __ISR__ SerialEncoderISR()
 		if (newData)
 		{
 			newData = 0;
-			memcpy(data, backBuffer, byeLenght);
+			memcpy(data, backBuffer, byteLenght);
 		}
 		bitsSent = 0;
 	}
