@@ -142,6 +142,29 @@ bool getEncoderDir(encoder_t *encoder)
 			encoder->prevTicksDir = encoder->ticksDir;
 			encoder->ticksDir = LEFT;
 			encoder->ticks++;
+			if (encoder->ticks == VUELTA_COMPLETA)
+			{
+				if(encoder->turns == 0) // Primera vuelta?
+				{
+					encoder->turns++;
+					encoder->turnsDir = encoder->ticksDir;
+				}
+				else //No es la primera vuelta
+				{
+					encoder->prevTurnsDir = encoder->turnsDir;
+					encoder->turnsDir = encoder->ticksDir;
+					if(encoder->prevTurnsDir == encoder->turnsDir)
+					{
+						encoder->turns++;
+					}
+					else
+					{
+						encoder->turns--;
+					}
+				}
+				gpioToggle(PIN_LED_BLUE);
+				encoder->ticks = 0;
+			}
 			return 0;
 		}
 		break;
@@ -186,6 +209,29 @@ bool getEncoderDir(encoder_t *encoder)
 			encoder->prevTicksDir = encoder->ticksDir;
 			encoder->ticksDir = RIGHT;
 			encoder->ticks++;
+			if (encoder->ticks == VUELTA_COMPLETA)
+			{
+				if(encoder->turns == 0) // Primera vuelta?
+				{
+					encoder->turns++;
+					encoder->turnsDir = encoder->ticksDir;
+				}
+				else //No es la primera vuelta
+				{
+					encoder->prevTurnsDir = encoder->turnsDir;
+					encoder->turnsDir = encoder->ticksDir;
+					if(encoder->prevTurnsDir == encoder->turnsDir)
+					{
+						encoder->turns++;
+					}
+					else
+					{
+						encoder->turns--;
+					}
+				}
+				gpioToggle(PIN_LED_RED);
+				encoder->ticks = 0;
+			}
 			return 1;
 		}
 		else if(encoder->actualA == 0) //Si estando en AB = 10 pasa a AB = 00
