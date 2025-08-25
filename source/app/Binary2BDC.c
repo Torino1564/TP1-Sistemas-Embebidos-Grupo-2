@@ -6,6 +6,7 @@
  */
 
 #include "Binary2BCD.h"
+#include <assert.h>
 
 static const bdc_data_t bcd_table[7] = {
 	{ .A = 1, .B = 1, .C = 1, .D = 1, .E = 1, .F = 1, .G = 0, .unused = 0 }, // 0

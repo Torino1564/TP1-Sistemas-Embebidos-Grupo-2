@@ -12,7 +12,7 @@
 #include <stdbool.h>
 
 bool Setup_SerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz);
-void WriteData(const uint8_t* pData);
+bool WriteData(const uint8_t* pData);
 
 
 #endif /* DRIVERS_SERIALENCODER_H_ */

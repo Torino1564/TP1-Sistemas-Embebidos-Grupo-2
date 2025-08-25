@@ -13,7 +13,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "drivers/gpio.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE

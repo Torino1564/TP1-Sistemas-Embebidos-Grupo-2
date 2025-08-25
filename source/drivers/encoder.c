@@ -8,6 +8,16 @@
 
 static encoder_t *encoder_global;
 
+
+enum StatesEncoder
+{
+	A0B0,
+	A0B1,
+	A1B0,
+	A1B1
+};
+
+
 /*******************************************************************************
  *                                FUNCTIONS
  ******************************************************************************/
@@ -251,4 +261,15 @@ bool getEncoderDir(encoder_t *encoder)
 	}
 
 	return 1; //temporal
+}
+
+bool readEncoderStatus(encoder_t* encoder)
+{
+	return encoder->newData;
+}
+
+
+uint8_t readEncoderData(encoder_t* encoder)
+{
+	return encoder->turnsDir;
 }

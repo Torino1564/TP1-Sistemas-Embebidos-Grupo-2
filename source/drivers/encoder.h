@@ -6,9 +6,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "gpio.h"
 
-//esta bien agregar el header board.h?
 #include "board.h"
 
 
@@ -20,27 +18,20 @@
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
  ******************************************************************************/
 
-enum StatesEncoder
-{
-	A0B0,
-	A0B1,
-	A1B0,
-	A1B1
-};
-
 typedef struct {
 	pin_t pinA;
 	pin_t pinB;
-	unsigned int actualA		:1; 		// actual state of A
-	unsigned int actualB		:1; 		// actual state of B
-	unsigned int prevA			:1; 		// previous state of A
-	unsigned int prevB			:1; 		// previous state of B
-	unsigned int enable			:1; 		// interrupts enable
-	unsigned int ticksDir		:1; 		// 0 counter clockwise / 1 clockwise
-	unsigned int prevTicksDir	:1;
-	unsigned int turnsDir		:1;
-	unsigned int prevTurnsDir	:1;
-	uint8_t ticks; 							// number of ticks in the same dir
+	uint16_t actualA		:1; 		// actual state of A
+	uint16_t actualB		:1; 		// actual state of B
+	uint16_t prevA			:1; 		// previous state of A
+	uint16_t prevB			:1; 		// previous state of B
+	uint16_t enable			:1; 		// interrupts enable
+	uint16_t ticksDir		:1; 		// 0 counter clockwise / 1 clockwise
+	uint16_t prevTicksDir	:1;
+	uint16_t turnsDir		:1;
+	uint16_t prevTurnsDir	:1;
+	uint16_t newData		:1;
+	uint8_t ticks; 						// number of ticks in the same dir
 	uint8_t turns;
 } encoder_t;
 
@@ -65,5 +56,7 @@ void getEncoderStatus(encoder_t *encoder);
 
 bool getEncoderDir(encoder_t *encoder);
 
+bool readEncoderStatus(encoder_t* encoder);
+uint8_t readEncoderData(encoder_t* encoder);
 /*Funcion para resetear todas las variables del encoder*/
 //void encoder_reset(encoder_t * encoder);
