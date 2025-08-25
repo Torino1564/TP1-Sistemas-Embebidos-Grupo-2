@@ -6,8 +6,24 @@
 
 #include "encoder.h"
 
-static encoder_t *encoder_global;
+typedef struct {
+	pin_t pinA;
+	pin_t pinB;
+	uint16_t actualA		:1; 		// actual state of A
+	uint16_t actualB		:1; 		// actual state of B
+	uint16_t prevA			:1; 		// previous state of A
+	uint16_t prevB			:1; 		// previous state of B
+	uint16_t enable			:1; 		// interrupts enable
+	uint16_t ticksDir		:1; 		// 0 counter clockwise / 1 clockwise
+	uint16_t prevTicksDir	:1;
+	uint16_t turnsDir		:1;
+	uint16_t prevTurnsDir	:1;
+	uint16_t newData		:1;
+	uint8_t ticks; 						// number of ticks in the same dir
+	uint8_t turns;
+} encoder_t;
 
+static encoder_t global_encoder;
 
 enum StatesEncoder
 {
@@ -17,45 +33,42 @@ enum StatesEncoder
 	A1B1
 };
 
-
 /*******************************************************************************
  *                                FUNCTIONS
  ******************************************************************************/
 
-bool encoder_init(encoder_t *encoder, pin_t senA, pin_t senB)
+bool encoder_init(pin_t senA, pin_t senB)
 {
-	encoder_global = encoder;
-
-	encoder->enable = 0;
-	encoder->pinA = senA;
-	encoder->pinB = senB;
-	encoder->actualA = 1;
-	encoder->actualB = 1;
+	global_encoder.enable = 0;
+	global_encoder.pinA = senA;
+	global_encoder.pinB = senB;
+	global_encoder.actualA = 1;
+	global_encoder.actualB = 1;
 	gpioMode(senA, INPUT);
 	gpioMode(senB, INPUT);
 
-	gpioSetupISR(encoder->pinA, FLAG_INT_EDGE, encoder_updated);
-	gpioSetupISR(encoder->pinB, FLAG_INT_EDGE, encoder_updated);
+	gpioSetupISR(global_encoder.pinA, FLAG_INT_EDGE, encoder_updated);
+	gpioSetupISR(global_encoder.pinB, FLAG_INT_EDGE, encoder_updated);
 
 	return 1;
 }
 
-void encoder_enable(encoder_t * encoder, bool enable)
+void encoder_enable(bool enable)
 {
-	encoder->enable = enable;
+	global_encoder.enable = enable;
 }
 
 void encoder_updated(void)
 {
 	/*lo que quiero hacer con este if es: si el enable esta desactivado entonces
 	 * las interrupciones no deberian hacer nada. No se si es la mejor manera de hacerlo*/
-	//if(encoder->enable)
+	//if(global_encoder.enable)
 //	{
 //		getEncoderStatus(encoder); //actualizo los valores de A y B
 //		getEncoderDir(encoder);
 //	}
-	getEncoderStatus(encoder_global);
-	getEncoderDir(encoder_global);
+	getEncoderStatus(global_encoder);
+	getEncoderDir(global_encoder);
 }
 
 //void getEncoderStatus(encoder_t *encoder)
@@ -66,194 +79,156 @@ void encoder_updated(void)
 //
 //bool getEncoderDir(encoder_t *encoder)
 //{
-//	gpioWrite(PIN_LED_RED, gpioRead(encoder->pinA));
-//	gpioWrite(PIN_LED_BLUE, gpioRead(encoder->pinB));
+//	gpioWrite(PIN_LED_RED, gpioRead(global_encoder.pinA));
+//	gpioWrite(PIN_LED_BLUE, gpioRead(global_encoder.pinB));
 //	return 1;
 //}
 
-void getEncoderStatus(encoder_t *encoder)
+void getEncoderStatus()
 {
-	encoder->prevA = encoder->actualA;
-	encoder->prevB = encoder->actualB;
+	global_encoder.prevA = global_encoder.actualA;
+	global_encoder.prevB = global_encoder.actualB;
 
-	encoder->actualA = gpioRead(encoder->pinA);
-	encoder->actualB = gpioRead(encoder->pinB);
+	global_encoder.actualA = gpioRead(global_encoder.pinA);
+	global_encoder.actualB = gpioRead(global_encoder.pinB);
 }
 
-bool getEncoderDir(encoder_t *encoder)
+bool getEncoderDir()
 {
 	uint8_t state = 0;
-	state = encoder->prevA<<1 | encoder->prevB;
+	state = global_encoder.prevA<<1 | global_encoder.prevB;
 
 	switch(state)
 	{
 	case A1B1: // Si llego a 11 entonces puede haber una vuelta completa
-		if(encoder->ticks == VUELTA_COMPLETA)
+		//Si no hubo vuelta completa no hago nada
+		global_encoder.ticks = 0;
+		if(global_encoder.actualA == 0) // Si estando en AB = 11 pasa a AB = 01
 		{
-			if(encoder->turns == 0) // Primera vuelta?
-			{
-				encoder->turns++;
-				encoder->turnsDir = encoder->ticksDir;
-			}
-			else //No es la primera vuelta
-			{
-				encoder->prevTurnsDir = encoder->turnsDir;
-				encoder->turnsDir = encoder->ticksDir;
-				if(encoder->prevTurnsDir == encoder->turnsDir)
-				{
-					encoder->turns++;
-				}
-				else
-				{
-					encoder->turns--;
-				}
-			}
-			if(encoder->turnsDir == RIGHT)
-			{
-				gpioToggle(PIN_LED_RED);
-			}
-			else
-			{
-				gpioToggle(PIN_LED_BLUE);
-			}
-			encoder->ticks = 0;
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = RIGHT;
+			global_encoder.ticks++;
+			return 1;
 		}
-		else //Si no hubo vuelta completa no hago nada
+		else if(global_encoder.actualB == 0) //Si estando en AB = 11 pasa a AB = 10
 		{
-			encoder->ticks = 0;
-			if(encoder->actualA == 0) // Si estando en AB = 11 pasa a AB = 01
-			{
-				encoder->prevTicksDir = encoder->ticksDir;
-				encoder->ticksDir = RIGHT;
-				encoder->ticks++;
-				return 1;
-			}
-			else if(encoder->actualB == 0) //Si estando en AB = 11 pasa a AB = 10
-			{
-				encoder->prevTicksDir = encoder->ticksDir;
-				encoder->ticksDir = LEFT;
-				encoder->ticks++;
-				return 0;
-			}
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = LEFT;
+			global_encoder.ticks++;
+			return 0;
 		}
-
 		break;
 
 	case A0B1:
-		if(encoder->actualB == 0) // Si estando en AB = 01 pasa a AB = 00
+		if(global_encoder.actualB == 0) // Si estando en AB = 01 pasa a AB = 00
 		{
-			encoder->prevTicksDir = encoder->ticksDir;
-			encoder->ticksDir = RIGHT;
-			encoder->ticks++;
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = RIGHT;
+			global_encoder.ticks++;
 			return 1;
 		}
-		else if(encoder->actualA == 1) //Si estando en AB = 01 pasa a AB = 11
+		else if(global_encoder.actualA == 1) //Si estando en AB = 01 pasa a AB = 11
 		{
-			encoder->prevTicksDir = encoder->ticksDir;
-			encoder->ticksDir = LEFT;
-			encoder->ticks++;
-			if (encoder->ticks == VUELTA_COMPLETA)
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = LEFT;
+			global_encoder.ticks++;
+			if (global_encoder.ticks == VUELTA_COMPLETA)
 			{
-				if(encoder->turns == 0) // Primera vuelta?
+				if(global_encoder.turns == 0) // Primera vuelta?
 				{
-					encoder->turns++;
-					encoder->turnsDir = encoder->ticksDir;
+					global_encoder.turns++;
+					global_encoder.turnsDir = global_encoder.ticksDir;
 				}
 				else //No es la primera vuelta
 				{
-					encoder->prevTurnsDir = encoder->turnsDir;
-					encoder->turnsDir = encoder->ticksDir;
-					if(encoder->prevTurnsDir == encoder->turnsDir)
+					global_encoder.prevTurnsDir = global_encoder.turnsDir;
+					global_encoder.turnsDir = global_encoder.ticksDir;
+					if(global_encoder.prevTurnsDir == global_encoder.turnsDir)
 					{
-						encoder->turns++;
+						global_encoder.turns++;
 					}
 					else
 					{
-						encoder->turns--;
+						global_encoder.turns--;
 					}
 				}
 				gpioToggle(PIN_LED_BLUE);
-				encoder->ticks = 0;
+				global_encoder.ticks = 0;
 			}
 			return 0;
 		}
 		break;
 
-
 	case A0B0:
-		if(encoder->actualA == 1) //Si estando en AB = 00 pasa a AB = 10
+		if(global_encoder.actualA == 1) //Si estando en AB = 00 pasa a AB = 10
 		{
-			encoder->prevTicksDir = encoder->ticksDir;
-			encoder->ticksDir = RIGHT;
-			if(encoder->prevTicksDir == encoder->ticksDir)
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = RIGHT;
+			if(global_encoder.prevTicksDir == global_encoder.ticksDir)
 			{
-				encoder->ticks++;
+				global_encoder.ticks++;
 			}
 			else
 			{
-				encoder->ticks--;
+				global_encoder.ticks--;
 			}
 			return 1;
 		}
-		else if(encoder->actualB == 1) //Si estando en AB = 00 pasa a AB = 01
+		else if(global_encoder.actualB == 1) //Si estando en AB = 00 pasa a AB = 01
 		{
-			encoder->prevTicksDir = encoder->ticksDir;
-			encoder->ticksDir = LEFT;
-			if(encoder->prevTicksDir == encoder->ticksDir)
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = LEFT;
+			if(global_encoder.prevTicksDir == global_encoder.ticksDir)
 			{
-				encoder->ticks++;
+				global_encoder.ticks++;
 			}
 			else
 			{
-				encoder->ticks--;
+				global_encoder.ticks--;
 			}
 			return 0;
 		}
 		break;
 
-
-
 	case A1B0:
-		if(encoder->actualB == 1) //Si estando en AB = 10 pasa a AB = 11
+		if(global_encoder.actualB == 1) //Si estando en AB = 10 pasa a AB = 11
 		{
-			encoder->prevTicksDir = encoder->ticksDir;
-			encoder->ticksDir = RIGHT;
-			encoder->ticks++;
-			if (encoder->ticks == VUELTA_COMPLETA)
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = RIGHT;
+			global_encoder.ticks++;
+			if (global_encoder.ticks == VUELTA_COMPLETA)
 			{
-				if(encoder->turns == 0) // Primera vuelta?
+				if(global_encoder.turns == 0) // Primera vuelta?
 				{
-					encoder->turns++;
-					encoder->turnsDir = encoder->ticksDir;
+					global_encoder.turns++;
+					global_encoder.turnsDir = global_encoder.ticksDir;
 				}
 				else //No es la primera vuelta
 				{
-					encoder->prevTurnsDir = encoder->turnsDir;
-					encoder->turnsDir = encoder->ticksDir;
-					if(encoder->prevTurnsDir == encoder->turnsDir)
+					global_encoder.prevTurnsDir = global_encoder.turnsDir;
+					global_encoder.turnsDir = global_encoder.ticksDir;
+					if(global_encoder.prevTurnsDir == global_encoder.turnsDir)
 					{
-						encoder->turns++;
+						global_encoder.turns++;
 					}
 					else
 					{
-						encoder->turns--;
+						global_encoder.turns--;
 					}
 				}
 				gpioToggle(PIN_LED_RED);
-				encoder->ticks = 0;
+				global_encoder.ticks = 0;
 			}
 			return 1;
 		}
-		else if(encoder->actualA == 0) //Si estando en AB = 10 pasa a AB = 00
+		else if(global_encoder.actualA == 0) //Si estando en AB = 10 pasa a AB = 00
 		{
-			encoder->prevTicksDir = encoder->ticksDir;
-			encoder->ticksDir = LEFT;
-			encoder->ticks++;
+			global_encoder.prevTicksDir = global_encoder.ticksDir;
+			global_encoder.ticksDir = LEFT;
+			global_encoder.ticks++;
 			return 0;
 		}
 		break;
-
-
 
 	default:
 		//quizas sea conveniente poner algo que avise si entra aca por equivocacion
@@ -265,11 +240,11 @@ bool getEncoderDir(encoder_t *encoder)
 
 bool readEncoderStatus(encoder_t* encoder)
 {
-	return encoder->newData;
+	return global_encoder.newData;
 }
 
 
 uint8_t readEncoderData(encoder_t* encoder)
 {
-	return encoder->turnsDir;
+	return global_encoder.turnsDir;
 }

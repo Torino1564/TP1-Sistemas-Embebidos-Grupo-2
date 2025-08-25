@@ -9,7 +9,7 @@
  ******************************************************************************/
 
 #include "StateMachine.h"
-#include "Peripherals.h" //QUIZAS HABRIA QUE ELIMITAR ESTE Y METER TODO EN HARDWARE.H
+#include "Peripherals.h"
 #include "hardware.h"
 #include "drivers/board.h"
 #include "drivers/encoder.h"
@@ -27,9 +27,6 @@
  ******************************************************************************/
 
 static StateMachine stateMachine;
-
-static encoder_t encoder;
-
 
 /*******************************************************************************
  *******************************************************************************
@@ -62,8 +59,8 @@ void App_Init (void)
 	gpioMode(PIN_LED_RED, OUTPUT);
 	gpioSetupISR(PIN_SW3, FLAG_INT_POSEDGE, &ISR);
 	SysTick_Init(&SysTickISR);
-	encoder_init(&encoder, ENCODER_A, ENCODER_B);
-	encoder_enable(&encoder, 1);
+	encoder_init(ENCODER_A, ENCODER_B);
+	encoder_enable(1);
 
 	// Estado inicial de la FSM
 	stateMachine.state = ADMIN;
