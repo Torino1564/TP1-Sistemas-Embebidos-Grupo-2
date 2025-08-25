@@ -15,6 +15,8 @@
 #include "drivers/encoder.h"
 #include "drivers/SysTick.h"
 
+#include "Binary2BCD.h"
+
 /*******************************************************************************
  *             CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
@@ -76,7 +78,6 @@ void App_Init (void)
 
 	gpioWrite(PIN_LED_RED, LOW);
 	gpioWrite(PIN_LED_BLUE, LOW);
-
 }
 
 /* Función que se llama constantemente en un ciclo infinito */

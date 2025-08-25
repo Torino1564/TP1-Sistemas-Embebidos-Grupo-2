@@ -31,16 +31,16 @@ enum StatesEncoder
 typedef struct {
 	pin_t pinA;
 	pin_t pinB;
-	unsigned int actualA:1; // actual state of A
-	unsigned int actualB:1; // actual state of B
-	unsigned int prevA:1; // previous state of A
-	unsigned int prevB:1; // previous state of B
-	unsigned int enable:1; // interrupts enable
-	unsigned int ticksDir:1; // 0 counter clockwise / 1 clockwise
-	unsigned int prevTicksDir:1;
-	unsigned int turnsDir:1;
-	unsigned int prevTurnsDir:1;
-	uint8_t ticks; // number of ticks in the same dir
+	unsigned int actualA		:1; 		// actual state of A
+	unsigned int actualB		:1; 		// actual state of B
+	unsigned int prevA			:1; 		// previous state of A
+	unsigned int prevB			:1; 		// previous state of B
+	unsigned int enable			:1; 		// interrupts enable
+	unsigned int ticksDir		:1; 		// 0 counter clockwise / 1 clockwise
+	unsigned int prevTicksDir	:1;
+	unsigned int turnsDir		:1;
+	unsigned int prevTurnsDir	:1;
+	uint8_t ticks; 							// number of ticks in the same dir
 	uint8_t turns;
 } encoder_t;
 
@@ -57,8 +57,8 @@ void encoder_enable(encoder_t * encoder, bool enable);
 
 void encoder_updated(void);
 
-//cada vez que se vaya a esperar una entrada del encoder hay que llamar esta funcion
-//para que obtenga el estado de A y B. Puede pasar que en algun momento se desactiven
+// Cada vez que se vaya a esperar una entrada del encoder hay que llamar esta funcion
+// para que obtenga el estado de A y B. Puede pasar que en algun momento se desactiven
 // las interrupciones del encoder y que por eso se pueda mover libremente el mismo y que
 // los movimientos no sean detectados y se pierde el valor de A y B.
 void getEncoderStatus(encoder_t *encoder);
