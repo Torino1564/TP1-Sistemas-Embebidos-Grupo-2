@@ -5,7 +5,9 @@
  *      Author: jtori
  */
 
+#include "gpio.h"
 #include "SerialEncoder.h"
+#include "board.h"
 
 // Global State
 static uint8_t* data;
@@ -51,6 +53,11 @@ bool Setup_SerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 	}
 	data = (uint8_t*)malloc(byteLenght);
 	backBuffer = (uint8_t*)malloc(byteLenght);
+
+	// pin setup
+	gpioMode(SERIAL_DATA_PIN, OUTPUT);
+	gpioMode(SERIAL_CLK_PIN, OUTPUT);
+	gpioMode(DATA_READY_PIN, OUTPUT);
 }
 
 void WriteData(const uint8_t* pData)
