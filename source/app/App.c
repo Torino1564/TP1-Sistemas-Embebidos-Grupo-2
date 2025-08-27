@@ -12,9 +12,7 @@
 #include "Peripherals.h"
 #include "hardware.h"
 #include "drivers/board.h"
-#include "drivers/encoder.h"
-#include "drivers/SysTick.h"
-
+#include "drivers/Timer.h"
 #include "Binary2BCD.h"
 
 /*******************************************************************************
@@ -34,18 +32,7 @@ static StateMachine stateMachine;
  *******************************************************************************
  ******************************************************************************/
 
-void ISR()
-{
-	gpioToggle(PIN_LED_BLUE);
-}
-
-void SysTickISR()
-{
-	int a = 0;
-	for (int i = 0; i < 100; i++) {
-		a += i;
-	}
-}
+static ticks tick_counter;
 
 /* Función de inicialización */
 void App_Init (void)
@@ -57,11 +44,7 @@ void App_Init (void)
 	gpioMode(PIN_SW3, INPUT);
 	gpioMode(PIN_LED_BLUE, OUTPUT);
 	gpioMode(PIN_LED_RED, OUTPUT);
-	gpioSetupISR(PIN_SW3, FLAG_INT_POSEDGE, &ISR);
-	SysTick_Init(&SysTickISR);
-	encoder_init(ENCODER_A, ENCODER_B);
-	encoder_enable(1);
-
+	TimerInit();
 	// Estado inicial de la FSM
 	stateMachine.state = ADMIN;
 
@@ -73,13 +56,21 @@ void App_Init (void)
 
 	hw_EnableInterrupts();
 
-	gpioWrite(PIN_LED_RED, LOW);
-	gpioWrite(PIN_LED_BLUE, LOW);
+	gpioWrite(PIN_LED_RED, HIGH);
+	gpioWrite(PIN_LED_BLUE, HIGH);
+
+	tick_counter = now();
 }
 
 /* Función que se llama constantemente en un ciclo infinito */
 void App_Run (void)
 {
+	ticks current_ticks = now();
+	if (current_ticks - tick_counter > MS_TO_TICKS(1000))
+	{
+		gpioToggle(PIN_LED_BLUE);
+		tick_counter = current_ticks;
+	}
 
 //	switch (stateMachine.state)
 //	{

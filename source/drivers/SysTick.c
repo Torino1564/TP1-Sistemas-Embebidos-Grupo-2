@@ -13,12 +13,12 @@
 
 static void (*sysTickCallback)(void) = 0;
 
-bool SysTick_Init (void (*funcallback)(void))
+bool SysTick_Init (void (*funcallback)(void), uint64_t freqHz)
 {
 	static bool initialized = false;
 
 	SysTick->CTRL = 0x00;
-	SysTick->LOAD = FREQ2TICKS(SYSTICK_ISR_FREQUENCY_HZ);
+	SysTick->LOAD = FREQ2TICKS(freqHz);
 	SysTick->VAL = 0x00;
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 

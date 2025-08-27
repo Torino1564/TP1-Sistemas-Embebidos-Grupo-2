@@ -7,10 +7,10 @@
 
 #include "gpio.h"
 #include "SerialEncoder.h"
-#include "board.h"
-#include "hardware.h"
 #include <string.h>
 #include <stdlib.h>
+#include "Timer.h"
+#include "board.h"
 
 // Global State
 static uint8_t* data;
@@ -23,9 +23,9 @@ static bool posTick;
 
 static bool newData;
 static bool completedWord;
+static uint32_t service_id;
 
-
-__ISR__ SerialEncoderISR()
+void SerialEncoderPISR()
 {
 	if (posTick)
 	{
@@ -78,6 +78,9 @@ bool Setup_SerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 	gpioMode(SERIAL_DATA_PIN, OUTPUT);
 	gpioMode(SERIAL_CLK_PIN, OUTPUT);
 	gpioMode(DATA_READY_PIN, OUTPUT);
+
+	// Register service
+	service_id = RegisterPeriodicInterruption(&SerialEncoderPISR, serialClkKHz * 1000);
 
 	return 0;
 }

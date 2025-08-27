@@ -12,13 +12,11 @@
  ******************************************************************************/
 
 #include <stdbool.h>
-
+#include <stdint.h>
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
-
-#define SYSTICK_ISR_FREQUENCY_HZ 10U
 
 
 /*******************************************************************************
@@ -35,10 +33,10 @@
 
 /**
  * @brief Initialize SysTic driver
- * @param funcallback Function to be call every SysTick
+ * @param funcallback Function to be call every SysTick. Frequency in hertz
  * @return Initialization and registration succeed
  */
-bool SysTick_Init (void (*funcallback)(void));
+bool SysTick_Init (void (*funcallback)(void), uint64_t freqHz);
 
 
 /*******************************************************************************
