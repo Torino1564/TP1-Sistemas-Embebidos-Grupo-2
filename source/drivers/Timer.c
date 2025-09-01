@@ -81,7 +81,17 @@ bool UnregisterPeriodicInterruption(uint32_t service_id)
 	return true;
 }
 
-ticks now()
+ticks Now()
 {
 	return current_ticks;
+}
+
+void Sleep(ticks dt)
+{
+	const ticks start = Now();
+	while (Now() - start < dt)
+	{
+		// Nothing
+	}
+	return;
 }

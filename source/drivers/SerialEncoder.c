@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Timer.h"
-#include "board.h"
+#include "hardware.h"
 
 // Global State
 static uint8_t* data;
@@ -62,7 +62,7 @@ void SerialEncoderPISR()
 	}
 }
 
-bool Setup_SerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
+bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 {
 	byteLenght = wordByteLenght;
 	serialPeriodUs = serialClkKHz * 1000;
@@ -81,11 +81,10 @@ bool Setup_SerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 
 	// Register service
 	service_id = RegisterPeriodicInterruption(&SerialEncoderPISR, serialClkKHz * 1000);
-
 	return 0;
 }
 
-bool WriteData(const uint8_t* pData)
+bool WriteSerialData(const uint8_t* pData)
 {
 	if (newData)
 		return 0;

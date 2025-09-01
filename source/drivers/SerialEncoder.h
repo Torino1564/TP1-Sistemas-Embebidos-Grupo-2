@@ -11,8 +11,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-bool Setup_SerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz);
-bool WriteData(const uint8_t* pData);
+bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz);
+bool WriteSerialData(const uint8_t* pData);
 
 
 #endif /* DRIVERS_SERIALENCODER_H_ */

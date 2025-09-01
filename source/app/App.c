@@ -9,7 +9,6 @@
  ******************************************************************************/
 
 #include "StateMachine.h"
-#include "Peripherals.h"
 #include "hardware.h"
 #include "drivers/board.h"
 #include "drivers/Timer.h"
@@ -40,7 +39,6 @@ void App_Init (void)
 	hw_DisableInterrupts();
 
 	// Arrancar perifericos
-	Peripherals_Init();
 	gpioMode(PIN_SW3, INPUT);
 	gpioMode(PIN_LED_BLUE, OUTPUT);
 	gpioMode(PIN_LED_RED, OUTPUT);
@@ -59,45 +57,45 @@ void App_Init (void)
 	gpioWrite(PIN_LED_RED, HIGH);
 	gpioWrite(PIN_LED_BLUE, HIGH);
 
-	tick_counter = now();
+	tick_counter = Now();
 }
 
 /* Función que se llama constantemente en un ciclo infinito */
 void App_Run (void)
 {
-	ticks current_ticks = now();
+	ticks current_ticks = Now();
 	if (current_ticks - tick_counter > MS_TO_TICKS(1000))
 	{
 		gpioToggle(PIN_LED_BLUE);
 		tick_counter = current_ticks;
 	}
 
-//	switch (stateMachine.state)
-//	{
-//	case IDLE:
-//		if (stateMachine.validID)
-//		{
-//			stateMachine.state = PIN;
-//		}
-//		break;
-//	case PIN:
-//		if (stateMachine.validPIN)
-//		{
-//			stateMachine.state = OPEN;
-//		}
-//		break;
-//	case COOLDOWN:
-//		if (stateMachine.cooldownTicks >= stateMachine.cooldownTime)
-//		{
-//			stateMachine.state = stateMachine.stateAfterCooldown;
-//		}
-//		break;
-//	// OPCIONAL:
-//	case ADMIN:
-//	case CHANGE_PIN:
-//	default:
-//		break;
-//	}
+	switch (stateMachine.state)
+	{
+	case IDLE:
+		if (stateMachine.validID)
+		{
+			stateMachine.state = PIN;
+		}
+		break;
+	case PIN:
+		if (stateMachine.validPIN)
+		{
+			stateMachine.state = OPEN;
+		}
+		break;
+	case COOLDOWN:
+		if (stateMachine.cooldownTicks >= stateMachine.cooldownTime)
+		{
+			stateMachine.state = stateMachine.stateAfterCooldown;
+		}
+		break;
+	// OPCIONAL:
+	case ADMIN:
+	case CHANGE_PIN:
+	default:
+		break;
+	}
 }
 
 /*******************************************************************************

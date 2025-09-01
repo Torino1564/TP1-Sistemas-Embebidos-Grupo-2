@@ -15,12 +15,15 @@ typedef unsigned long long ticks;
 
 #define TICKS_PER_SECOND (ticks)1000000u
 #define MS_TO_TICKS(x) (ticks)(x * TICKS_PER_SECOND/1000)
+#define US_TO_TICKS(x) (ticks)(x * ( TICKS_PER_SECOND))
 
 bool TimerInit();
 
 uint32_t RegisterPeriodicInterruption(void (*callback)(), ticks deltaT);
 bool UnregisterPeriodicInterruption(uint32_t service_id);
 
-ticks now();
+ticks Now();
+
+void Sleep(ticks dt);
 
 #endif /* DRIVERS_TIMER_H_ */
