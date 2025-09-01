@@ -9,9 +9,8 @@
 #define DRIVERS_DISPLAY_H_
 
 #define DIGIT_REFRESH_RATE 30
-#define NUM_DIGITS 4
 
-void InitDisplay();
+void DisplayInit();
 void WriteDisplay(const char* pData);
 void ClearDisplay();
 void EnableDisplay();

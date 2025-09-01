@@ -246,7 +246,7 @@
 					</fileInfo>
 					<fileInfo id="com.crt.advproject.config.exe.debug.1284265667.1578288722" name="SerialEncoder.c" rcbsApplicability="disable" resourcePath="source/drivers/SerialEncoder.c" toolsToInvoke="com.crt.advproject.gcc.exe.debug.1546198014.1592522942">
 						<tool id="com.crt.advproject.gcc.exe.debug.1546198014.1592522942" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug.1546198014">
-							<option id="gnu.c.compiler.option.misc.otherExcludedFromScannerDiscovery.242486326" name="Other flags (excluded from discovery)" superClass="gnu.c.compiler.option.misc.otherExcludedFromScannerDiscovery" value="-mgeneral-regs-only" valueType="string"/>
+							<option id="gnu.c.compiler.option.misc.otherExcludedFromScannerDiscovery.242486326" name="Other flags (excluded from discovery)" superClass="gnu.c.compiler.option.misc.otherExcludedFromScannerDiscovery" value="" valueType="string"/>
 							<inputType id="com.crt.advproject.compiler.input.726950130" superClass="com.crt.advproject.compiler.input"/>
 						</tool>
 					</fileInfo>

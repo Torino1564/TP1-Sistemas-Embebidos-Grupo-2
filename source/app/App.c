@@ -7,17 +7,20 @@
 /*******************************************************************************
  *                        INCLUDE HEADER FILES
  ******************************************************************************/
-
+#include <string.h>
+#include <stdlib.h>
 #include "StateMachine.h"
 #include "hardware.h"
 #include "drivers/board.h"
 #include "drivers/Timer.h"
-#include "Binary2BCD.h"
+#include "drivers/encoder.h"
+#include "drivers/Display.h"
 
 /*******************************************************************************
  *             CONSTANT AND MACRO DEFINITIONS USING #DEFINE
  ******************************************************************************/
 
+#define MAX_STRING_LENGHT 16
 
 /*******************************************************************************
  *                            GLOBAL STATE
@@ -25,13 +28,20 @@
 
 static StateMachine stateMachine;
 
+static ticks tick_counter;
+
+static char* id_string;
+static char* pin_string;
+
+static char currentDigit;
+
 /*******************************************************************************
  *******************************************************************************
                         GLOBAL FUNCTION DEFINITIONS
  *******************************************************************************
  ******************************************************************************/
 
-static ticks tick_counter;
+void ProcessInput();
 
 /* Función de inicialización */
 void App_Init (void)
@@ -39,40 +49,34 @@ void App_Init (void)
 	hw_DisableInterrupts();
 
 	// Arrancar perifericos
-	gpioMode(PIN_SW3, INPUT);
-	gpioMode(PIN_LED_BLUE, OUTPUT);
-	gpioMode(PIN_LED_RED, OUTPUT);
 	TimerInit();
+	DisplayInit();
+	encoder_init(ENCODER_A, ENCODER_B);
+
 	// Estado inicial de la FSM
 	stateMachine.state = ADMIN;
 
-	// Habilito interrupciones por puerto
-	NVIC_EnableIRQ(PORTA_IRQn);
-	NVIC_EnableIRQ(PORTB_IRQn);
-	NVIC_EnableIRQ(PORTC_IRQn);
-	NVIC_EnableIRQ(PORTD_IRQn);
-
 	hw_EnableInterrupts();
 
-	gpioWrite(PIN_LED_RED, HIGH);
-	gpioWrite(PIN_LED_BLUE, HIGH);
+	id_string = (char*)malloc(MAX_STRING_LENGHT);
+	pin_string = (char*)malloc(MAX_STRING_LENGHT);
 
+	memset((void*)id_string, 0, MAX_STRING_LENGHT);
+	memset((void*)pin_string, 0, MAX_STRING_LENGHT);
+
+	currentDigit = '0';
 	tick_counter = Now();
+
+	WriteDisplay("1234");
 }
 
 /* Función que se llama constantemente en un ciclo infinito */
 void App_Run (void)
 {
-	ticks current_ticks = Now();
-	if (current_ticks - tick_counter > MS_TO_TICKS(1000))
-	{
-		gpioToggle(PIN_LED_BLUE);
-		tick_counter = current_ticks;
-	}
-
 	switch (stateMachine.state)
 	{
 	case IDLE:
+		ProcessInput();
 		if (stateMachine.validID)
 		{
 			stateMachine.state = PIN;
@@ -95,6 +99,27 @@ void App_Run (void)
 	case CHANGE_PIN:
 	default:
 		break;
+	}
+}
+
+void ProcessInput()
+{
+	if (readEncoderStatus())
+	{
+		uint8_t turnDir = readEncoderData();
+		if (turnDir == RIGHT)
+		{
+			currentDigit = currentDigit == '9' ? '0' : currentDigit + 1;
+		}
+		else if (turnDir == LEFT)
+		{
+
+			currentDigit = currentDigit == '0' ? '9' : currentDigit - 1;
+		}
+		else // BUTTON
+		{
+
+		}
 	}
 }
 

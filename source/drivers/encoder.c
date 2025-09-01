@@ -5,6 +5,7 @@
  ******************************************************************************/
 
 #include "encoder.h"
+#include <stdbool.h>
 
 typedef struct {
 	pin_t pinA;
@@ -238,13 +239,18 @@ bool getEncoderDir()
 	return 1; //temporal
 }
 
-bool readEncoderStatus(encoder_t* encoder)
+bool readEncoderStatus()
 {
-	return global_encoder.newData;
+	const bool temp = global_encoder.newData;
+	if (global_encoder.newData)
+	{
+		global_encoder.newData = 0;
+	}
+	return temp;
 }
 
 
-uint8_t readEncoderData(encoder_t* encoder)
+uint8_t readEncoderData()
 {
 	return global_encoder.turnsDir;
 }

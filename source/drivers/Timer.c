@@ -30,11 +30,14 @@ void TimerPISR()
 	for (int i = 0; i < registeredServicesCount; i++)
 	{
 		PeriodicService* pService = &pServices[i];
-		pService->tickCount--;
 		if (pService->tickCount == 0)
 		{
 			pService->tickCount = pService->tickInterval;
 			pService->pCallback();
+		}
+		else
+		{
+			pService->tickCount--;
 		}
 	}
 	current_ticks++;

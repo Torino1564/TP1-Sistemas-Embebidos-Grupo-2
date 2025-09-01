@@ -20,8 +20,8 @@ typedef struct
 	uint8_t F			: 		1;
 	uint8_t G			: 		1;
 	uint8_t unused		: 		1;
-} bdc_data_t;
+} bcd_data_t;
 
-bdc_data_t binary_to_bcd(uint8_t binary_data);
+bcd_data_t binary_to_bcd(uint8_t binary_data);
 
 #endif /* APP_BINARY2BCD_H_ */

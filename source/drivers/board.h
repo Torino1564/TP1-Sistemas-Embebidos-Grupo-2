@@ -27,9 +27,6 @@
 
 #define LED_ACTIVE      	LOW
 
-#define SERIAL_DATA_PIN		PORTNUM2PIN(PA, 1)
-#define SERIAL_CLK_PIN		PORTNUM2PIN(PA, 2)
-#define DATA_READY_PIN		PORTNUM2PIN(PA, 3)
 
 // On Board User Switches
 #define PIN_SW2         	PORTNUM2PIN(PC, 6) // PTC6

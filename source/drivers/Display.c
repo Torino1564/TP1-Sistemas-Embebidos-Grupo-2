@@ -9,6 +9,8 @@
 #include "Timer.h"
 #include "SerialEncoder.h"
 
+#include "Binary2BCD.h"
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -19,7 +21,7 @@ static uint16_t stringOffset;
 static uint32_t service_id;
 
 #define S2P_BYTES (uint8_t)2
-
+#define NUM_DIGITS 4
 #define MS_PER_DIGIT (1000 / (NUM_DIGITS * DIGIT_REFRESH_RATE))
 
 typedef struct
@@ -53,15 +55,49 @@ void DisplayPISR()
 {
 	const char currentDigit = data[stringOffset + currentCharacter];
 
+
 	ParallelBytes data = {};
-	data.Dig0 = (3 - currentCharacter) & 0b01;
-	data.Dig1 = (3 - currentCharacter) & 0b10;
+	data.Dig0 = (NUM_DIGITS - 1 - currentCharacter) & 0b01;
+	data.Dig1 = (NUM_DIGITS - 1 - currentCharacter) & 0b10;
+
+	data.Led0 = 0;
+	data.Led1 = 0;
+
+	data.unused0 = 0;
+	data.unused1 = 0;
+	data.unused2 = 0;
+	data.unused3 = 0;
+
+	bcd_data_t bcd = {};
+	if (currentDigit >= 0 && currentDigit <= 9)
+	{
+		bcd = binary_to_bcd(currentDigit);
+	}
+	else if (currentDigit >= '0' && currentDigit <= '9')
+	{
+		bcd = binary_to_bcd(currentDigit - '0');
+	}
+	else if ((currentDigit >= 'a' && currentDigit <= 'z') || (currentDigit >= 'A' && currentDigit <= 'Z'))
+	{
+
+	}
+
+	data.A = bcd.A;
+	data.B = bcd.B;
+	data.C = bcd.C;
+	data.D = bcd.D;
+	data.E = bcd.E;
+	data.F = bcd.F;
+	data.G = bcd.G;
+
+	currentCharacter = currentCharacter == NUM_DIGITS - 1 ? 0 : currentCharacter + 1;
+
+	WriteSerialData((uint8_t*)&data);
 }
 
-void InitDisplay()
+void DisplayInit()
 {
 	InitSerialEncoder(S2P_BYTES, (8 * S2P_BYTES)/MS_PER_DIGIT);
-
 	service_id = RegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT));
 }
 

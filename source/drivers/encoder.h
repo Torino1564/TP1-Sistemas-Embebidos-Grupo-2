@@ -11,8 +11,9 @@
 
 
 #define VUELTA_COMPLETA 4
-#define RIGHT 1
 #define LEFT 0
+#define RIGHT 1
+#define BUTTON 2
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS
@@ -39,6 +40,10 @@ void getEncoderStatus();
 bool getEncoderDir();
 
 bool readEncoderStatus();
+/**
+ * @return Devuelve RIGHT, LEFT, BUTTON
+ */
 uint8_t readEncoderData();
+
 /*Funcion para resetear todas las variables del encoder*/
 //void encoder_reset(encoder_t * encoder);
