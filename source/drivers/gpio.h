@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
+#include "Callback.h"
 
 /*******************************************************************************
  * CONSTANT AND MACRO DEFINITIONS USING #DEFINE
@@ -42,6 +42,7 @@ enum { PA, PB, PC, PD, PE };
 
 #ifndef IRQCMODES
 #define IRQCMODES
+#define NO_INT				0b0000
 #define FLAG_DMA_POSEDGE 	0b0001
 #define FLAG_DMA_NEGEDGE 	0b0010
 #define FLAG_DMA_EDGE		0b0011
@@ -65,7 +66,6 @@ enum { PA, PB, PC, PD, PE };
  ******************************************************************************/
 
 typedef uint8_t pin_t;
-
 
 /*******************************************************************************
  * VARIABLE PROTOTYPES WITH GLOBAL SCOPE
@@ -107,8 +107,8 @@ bool gpioRead (pin_t pin);
  * @brief Setup the interrupt mode of a gpio
  * @param Pointer to the ISR, otherwise defaults to empty
  */
-void gpioSetupISR(pin_t pin, uint8_t interrupt_mode, void (*pCallback)());
-
+void gpioSetupISR(pin_t pin, uint8_t interrupt_mode, callback* pCallback, void* user_data);
+void gpioSetUserData(pin_t pin, void* user_data);
 
 /*******************************************************************************
  ******************************************************************************/

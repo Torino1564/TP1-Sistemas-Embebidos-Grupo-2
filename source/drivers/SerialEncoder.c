@@ -23,9 +23,9 @@ static bool posTick;
 
 static bool newData;
 static bool completedWord;
-static uint32_t service_id;
+static service_id serviceId;
 
-void SerialEncoderPISR()
+void SerialEncoderPISR(void*)
 {
 	if (completedWord)
 	{
@@ -84,7 +84,7 @@ bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 	gpioMode(DATA_READY_PIN, OUTPUT);
 
 	// Register service
-	service_id = RegisterPeriodicInterruption(&SerialEncoderPISR, MS_TO_TICKS((float)1/(float)serialClkKHz));
+	serviceId = TimerRegisterPeriodicInterruption(&SerialEncoderPISR, MS_TO_TICKS((float)1/(float)serialClkKHz), 0);
 	return 0;
 }
 

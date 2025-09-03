@@ -7,13 +7,18 @@
 #include "gpio.h"
 #include "hardware.h"
 
-static void (*callbackMatrix[160])(void) = {0};
+typedef struct {
+	callback* pCallback;
+	void* user_data;
+} CallbackAndState;
+
+static CallbackAndState callbackMatrix[160] = {0};
 
 /*******************************************************************************
  *                                FUNCTIONS
  ******************************************************************************/
 
-void gpioSetupISR(pin_t pin, uint8_t interrupt_mode, void (*pCallback)())
+void gpioSetupISR(pin_t pin, uint8_t interrupt_mode, callback* pCallback, void* user_data)
 {
 	uint32_t portValue = (interrupt_mode<<PORT_PCR_IRQC_SHIFT);
 	uint32_t portMask = PORT_PCR_IRQC_MASK;
@@ -22,7 +27,14 @@ void gpioSetupISR(pin_t pin, uint8_t interrupt_mode, void (*pCallback)())
 
 	portBase[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] = (portBase[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] & ~portMask) | portValue;
 
-	callbackMatrix[pin] = pCallback;
+	callbackMatrix[pin].pCallback = pCallback;
+	callbackMatrix[pin].user_data = user_data;
+}
+
+
+void gpioSetUserData(pin_t pin, void* user_data)
+{
+	callbackMatrix[pin].user_data = user_data;
 }
 
 void gpioMode (pin_t pin, uint8_t mode)
@@ -100,11 +112,10 @@ bool gpioRead (pin_t pin)
 	return result;
 }
 
-
-__ISR__ PORTA_IRQHandler(void)
+void PortX_IRQImpl(uint8_t portNumber)
 {
 	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
-	uint32_t ISFR = portBase[PA]->ISFR;
+	uint32_t ISFR = portBase[portNumber]->ISFR;
 	uint8_t contador = 0;
 	while(!(ISFR & 0x01))
 	{
@@ -113,76 +124,32 @@ __ISR__ PORTA_IRQHandler(void)
 	}
 	//que debo hacer? borro el flag o no?
 
-	portBase[PA]->ISFR = 1<<contador;
+	portBase[portNumber]->ISFR = 1<<contador;
+	CallbackAndState* p = &callbackMatrix[portNumber*32 + contador];
+	p->pCallback(p->user_data);
+}
 
-	callbackMatrix[PA*32 + contador]();
-
+__ISR__ PORTA_IRQHandler(void)
+{
+	PortX_IRQImpl(PA);
 }
 
 __ISR__ PORTB_IRQHandler(void)
 {
-	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
-	uint32_t ISFR = portBase[PB]->ISFR;
-	uint8_t contador = 0;
-	while(!(ISFR & 0x01))
-	{
-		ISFR = ISFR>>1;
-		contador++;
-	}
-	//que debo hacer? borro el flag o no?
-
-	portBase[PB]->ISFR = 1<<contador;
-
-	callbackMatrix[PB*32 + contador]();
+	PortX_IRQImpl(PB);
 }
 
 __ISR__ PORTC_IRQHandler(void)
 {
-	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
-	uint32_t ISFR = portBase[PC]->ISFR;
-	uint8_t contador = 0;
-	while(!(ISFR & 0x01))
-	{
-		ISFR = ISFR>>1;
-		contador++;
-	}
-	//que debo hacer? borro el flag o no?
-
-	portBase[PC]->ISFR = 1<<contador;
-
-	callbackMatrix[PC*32 + contador]();
+	PortX_IRQImpl(PC);
 }
 
 __ISR__ PORTD_IRQHandler(void)
 {
-	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
-	uint32_t ISFR = portBase[PD]->ISFR;
-	uint8_t contador = 0;
-	while(!(ISFR & 0x01))
-	{
-		ISFR = ISFR>>1;
-		contador++;
-	}
-	//que debo hacer? borro el flag o no?
-
-	portBase[PD]->ISFR = 1<<contador;
-
-	callbackMatrix[PD*32 + contador]();
+	PortX_IRQImpl(PD);
 }
 
 __ISR__ PORTE_IRQHandler(void)
 {
-	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
-	uint32_t ISFR = portBase[PE]->ISFR;
-	uint8_t contador = 0;
-	while(!(ISFR & 0x01))
-	{
-		ISFR = ISFR>>1;
-		contador++;
-	}
-	//que debo hacer? borro el flag o no?
-
-	portBase[PE]->ISFR = 1<<contador;
-
-	callbackMatrix[PE*32 + contador]();
+	PortX_IRQImpl(PE);
 }

@@ -14,9 +14,11 @@
 
 typedef struct
 {
-	void (*pCallback)();
+	callback* pCallback;
 	ticks tickInterval;
 	ticks tickCount;
+	void* user_data;
+	bool enable;
 } PeriodicService;
 
 static PeriodicService* pServices;
@@ -30,10 +32,12 @@ void TimerPISR()
 	for (int i = 0; i < registeredServicesCount; i++)
 	{
 		PeriodicService* pService = &pServices[i];
+		if (!pService->enable)
+			continue;
 		if (pService->tickCount == 0)
 		{
 			pService->tickCount = pService->tickInterval;
-			pService->pCallback();
+			pService->pCallback(pService->user_data);
 		}
 		else
 		{
@@ -49,7 +53,7 @@ bool TimerInit()
 	return SysTick_Init(&TimerPISR, (uint64_t)TICKS_PER_SECOND);
 }
 
-uint32_t RegisterPeriodicInterruption(void (*callback)(), ticks deltaT)
+service_id TimerRegisterPeriodicInterruption(callback* pCallback, ticks deltaT, void* user_data)
 {
 	if (maxCapacity == 0)
 	{
@@ -65,23 +69,39 @@ uint32_t RegisterPeriodicInterruption(void (*callback)(), ticks deltaT)
 
 	PeriodicService* pService = &pServices[registeredServicesCount];
 
-	pService->pCallback = callback;
+	pService->pCallback = pCallback;
 	pService->tickInterval = deltaT;
 	pService->tickCount = 0;
+	pService->user_data = user_data;
+	pService->enable = 1;
 
 	return registeredServicesCount++;
 }
 
-bool UnregisterPeriodicInterruption(uint32_t service_id)
+bool TimerUnregisterPeriodicInterruption(service_id serviceId)
 {
-	if (service_id >= registeredServicesCount)
+	if (serviceId >= registeredServicesCount)
 	{
 		return false;
 	}
 
 	PeriodicService temp = pServices[registeredServicesCount--];
-	pServices[service_id] = temp;
+	pServices[serviceId] = temp;
 	return true;
+}
+
+
+void TimerSetEnable(service_id serviceId, bool enable)
+{
+	PeriodicService* pService = &pServices[serviceId];
+	pService->enable = enable;
+	pService->tickCount = pService->tickInterval;
+}
+
+void TimerSetUserData(service_id serviceId, void* user_data)
+{
+	PeriodicService* pService = &pServices[serviceId];
+	pService->user_data = user_data;
 }
 
 ticks Now()

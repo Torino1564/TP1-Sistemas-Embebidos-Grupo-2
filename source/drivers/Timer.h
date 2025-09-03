@@ -10,17 +10,20 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "Callback.h"
 
 typedef unsigned long long ticks;
-
+typedef uint32_t service_id;
 #define TICKS_PER_SECOND (ticks)20000u
 #define MS_TO_TICKS(x) (ticks)((x) * TICKS_PER_SECOND/1000)
 #define US_TO_TICKS(x) (ticks)((x) * ( TICKS_PER_SECOND)/1000000)
 
 bool TimerInit();
 
-uint32_t RegisterPeriodicInterruption(void (*callback)(), ticks deltaT);
-bool UnregisterPeriodicInterruption(uint32_t service_id);
+service_id TimerRegisterPeriodicInterruption(callback* pCallback, ticks deltaT, void* user_data);
+void TimerSetUserData(service_id serviceId, void* user_data);
+void TimerSetEnable(service_id serviceId, bool enable);
+bool TimerUnregisterPeriodicInterruption(service_id serviceId);
 
 ticks Now();
 

@@ -38,28 +38,12 @@ enum StatesEncoder
  *                                FUNCTIONS
  ******************************************************************************/
 
-bool encoder_init(pin_t senA, pin_t senB)
-{
-	global_encoder.enable = 0;
-	global_encoder.pinA = senA;
-	global_encoder.pinB = senB;
-	global_encoder.actualA = 1;
-	global_encoder.actualB = 1;
-	gpioMode(senA, INPUT);
-	gpioMode(senB, INPUT);
-
-	gpioSetupISR(global_encoder.pinA, FLAG_INT_EDGE, encoder_updated);
-	gpioSetupISR(global_encoder.pinB, FLAG_INT_EDGE, encoder_updated);
-
-	return 1;
-}
-
 void encoder_enable(bool enable)
 {
 	global_encoder.enable = enable;
 }
 
-void encoder_updated(void)
+void encoder_updated(void* user_data)
 {
 	/*lo que quiero hacer con este if es: si el enable esta desactivado entonces
 	 * las interrupciones no deberian hacer nada. No se si es la mejor manera de hacerlo*/
@@ -70,6 +54,22 @@ void encoder_updated(void)
 //	}
 	getEncoderStatus(global_encoder);
 	getEncoderDir(global_encoder);
+}
+
+bool encoder_init(pin_t senA, pin_t senB)
+{
+	global_encoder.enable = 0;
+	global_encoder.pinA = senA;
+	global_encoder.pinB = senB;
+	global_encoder.actualA = 1;
+	global_encoder.actualB = 1;
+	gpioMode(senA, INPUT);
+	gpioMode(senB, INPUT);
+
+	gpioSetupISR(global_encoder.pinA, FLAG_INT_EDGE, encoder_updated, 0);
+	gpioSetupISR(global_encoder.pinB, FLAG_INT_EDGE, encoder_updated, 0);
+
+	return 1;
 }
 
 //void getEncoderStatus(encoder_t *encoder)

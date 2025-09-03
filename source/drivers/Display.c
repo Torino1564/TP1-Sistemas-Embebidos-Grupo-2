@@ -18,7 +18,7 @@ static char* data;
 static uint16_t numCharacters;
 static uint16_t currentCharacter;
 static uint16_t stringOffset;
-static uint32_t service_id;
+static service_id serviceId;
 
 #define S2P_BYTES (uint8_t)2
 #define NUM_DIGITS 4
@@ -51,10 +51,9 @@ typedef struct
 	uint16_t A 			: 1;
 } ParallelBytes;
 
-void DisplayPISR()
+void DisplayPISR(void*)
 {
 	const char currentDigit = data[stringOffset + currentCharacter];
-
 
 	ParallelBytes data = {};
 	data.Dig0 = (NUM_DIGITS - 1 - currentCharacter) & 0b01;
@@ -98,7 +97,7 @@ void DisplayPISR()
 void DisplayInit()
 {
 	InitSerialEncoder(S2P_BYTES, (8 * S2P_BYTES)/MS_PER_DIGIT);
-	service_id = RegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT));
+	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT), 0);
 }
 
 

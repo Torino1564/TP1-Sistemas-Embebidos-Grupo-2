@@ -29,8 +29,6 @@ bool encoder_init(pin_t senA, pin_t senB);
 /* Es una funcion que habilita o desahabilita el encoder */
 void encoder_enable(bool enable);
 
-void encoder_updated(void);
-
 // Cada vez que se vaya a esperar una entrada del encoder hay que llamar esta funcion
 // para que obtenga el estado de A y B. Puede pasar que en algun momento se desactiven
 // las interrupciones del encoder y que por eso se pueda mover libremente el mismo y que
