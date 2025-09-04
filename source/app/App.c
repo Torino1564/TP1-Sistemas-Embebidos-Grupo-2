@@ -67,7 +67,7 @@ void App_Init (void)
 	currentDigit = '0';
 	tick_counter = Now();
 
-	WriteDisplay("1234");
+	WriteDisplay("1111");
 }
 
 /* Función que se llama constantemente en un ciclo infinito */

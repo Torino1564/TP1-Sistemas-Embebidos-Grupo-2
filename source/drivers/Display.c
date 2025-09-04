@@ -96,7 +96,7 @@ void DisplayPISR(void*)
 
 void DisplayInit()
 {
-	InitSerialEncoder(S2P_BYTES, (8 * S2P_BYTES)/MS_PER_DIGIT);
+	InitSerialEncoder(S2P_BYTES, 4*((8 * S2P_BYTES)/MS_PER_DIGIT));
 	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT), 0);
 }
 
