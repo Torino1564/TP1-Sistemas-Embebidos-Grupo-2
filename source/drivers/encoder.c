@@ -45,13 +45,6 @@ void encoder_enable(bool enable)
 
 void encoder_updated(void* user_data)
 {
-	/*lo que quiero hacer con este if es: si el enable esta desactivado entonces
-	 * las interrupciones no deberian hacer nada. No se si es la mejor manera de hacerlo*/
-	//if(global_encoder.enable)
-//	{
-//		getEncoderStatus(encoder); //actualizo los valores de A y B
-//		getEncoderDir(encoder);
-//	}
 	getEncoderStatus(global_encoder);
 	getEncoderDir(global_encoder);
 }
@@ -71,19 +64,6 @@ bool encoder_init(pin_t senA, pin_t senB)
 
 	return 1;
 }
-
-//void getEncoderStatus(encoder_t *encoder)
-//{
-//
-//	return;
-//}
-//
-//bool getEncoderDir(encoder_t *encoder)
-//{
-//	gpioWrite(PIN_LED_RED, gpioRead(global_encoder.pinA));
-//	gpioWrite(PIN_LED_BLUE, gpioRead(global_encoder.pinB));
-//	return 1;
-//}
 
 void getEncoderStatus()
 {

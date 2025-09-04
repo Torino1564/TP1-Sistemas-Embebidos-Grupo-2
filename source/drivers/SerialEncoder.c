@@ -17,7 +17,6 @@ static uint8_t* data;
 static uint8_t* backBuffer;
 static uint8_t 	byteLenght;
 static uint8_t 	bitsSent;
-static uint32_t serialPeriodUs;
 
 static bool posTick;
 
@@ -69,9 +68,6 @@ void SerialEncoderPISR(void*)
 bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 {
 	byteLenght = wordByteLenght;
-	//cambio la linea comentada por la siguiente
-	//serialPeriodUs = serialClkKHz * 1000;
-	serialPeriodUs = 1000/serialClkKHz;
 
 	if (data != 0)
 	{

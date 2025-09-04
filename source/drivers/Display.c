@@ -56,8 +56,8 @@ void DisplayPISR(void*)
 	const char currentDigit = data[stringOffset + currentCharacter];
 
 	ParallelBytes data = {};
-	data.Dig0 = (NUM_DIGITS - 1 - currentCharacter) & 0b01;
-	data.Dig1 = ((NUM_DIGITS - 1 - currentCharacter) & 0b10) >> 1;
+	data.Dig0 = currentCharacter & 0b01;
+	data.Dig1 = (currentCharacter & 0b10) >> 1;
 
 	data.Led0 = 0;
 	data.Led1 = 0;
