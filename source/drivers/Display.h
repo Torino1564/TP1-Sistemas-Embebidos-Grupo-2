@@ -8,7 +8,7 @@
 #ifndef DRIVERS_DISPLAY_H_
 #define DRIVERS_DISPLAY_H_
 
-#define DIGIT_REFRESH_RATE 30
+#define DIGIT_REFRESH_RATE 120
 
 void DisplayInit();
 void WriteDisplay(const char* pData);
