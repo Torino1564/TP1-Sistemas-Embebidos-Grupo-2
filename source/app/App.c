@@ -54,7 +54,7 @@ void App_Init (void)
 	encoder_init(ENCODER_A, ENCODER_B);
 
 	// Estado inicial de la FSM
-	stateMachine.state = ADMIN;
+	stateMachine.state = IDLE;
 
 	hw_EnableInterrupts();
 
@@ -66,6 +66,14 @@ void App_Init (void)
 
 	currentDigit = '0';
 	tick_counter = Now();
+
+	gpioMode(PIN_LED_RED, OUTPUT);
+	gpioMode(PIN_LED_BLUE, OUTPUT);
+
+	gpioWrite(PIN_LED_RED, LOW);
+	gpioWrite(PIN_LED_BLUE, LOW);
+
+	NVIC_EnableIRQ(PORTD_IRQn);
 
 	WriteDisplay("1111");
 }
@@ -121,6 +129,7 @@ void ProcessInput()
 
 		}
 	}
+	WriteDisplay(&currentDigit);
 }
 
 /*******************************************************************************

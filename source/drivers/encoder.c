@@ -107,14 +107,14 @@ bool getEncoderDir()
 		if(global_encoder.actualA == 0) // Si estando en AB = 11 pasa a AB = 01
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = RIGHT;
+			global_encoder.ticksDir = LEFT; // cambiar a left
 			global_encoder.ticks++;
 			return 1;
 		}
 		else if(global_encoder.actualB == 0) //Si estando en AB = 11 pasa a AB = 10
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = LEFT;
+			global_encoder.ticksDir = RIGHT; // cambiar a right
 			global_encoder.ticks++;
 			return 0;
 		}
@@ -124,14 +124,14 @@ bool getEncoderDir()
 		if(global_encoder.actualB == 0) // Si estando en AB = 01 pasa a AB = 00
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = RIGHT;
+			global_encoder.ticksDir = LEFT; // cambiar a left
 			global_encoder.ticks++;
 			return 1;
 		}
 		else if(global_encoder.actualA == 1) //Si estando en AB = 01 pasa a AB = 11
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = LEFT;
+			global_encoder.ticksDir = RIGHT; // cambiar a right
 			global_encoder.ticks++;
 			if (global_encoder.ticks == VUELTA_COMPLETA)
 			{
@@ -154,6 +154,7 @@ bool getEncoderDir()
 					}
 				}
 				gpioToggle(PIN_LED_BLUE);
+				global_encoder.newData = 1;
 				global_encoder.ticks = 0;
 			}
 			return 0;
@@ -164,7 +165,7 @@ bool getEncoderDir()
 		if(global_encoder.actualA == 1) //Si estando en AB = 00 pasa a AB = 10
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = RIGHT;
+			global_encoder.ticksDir = LEFT; // cambiar a left
 			if(global_encoder.prevTicksDir == global_encoder.ticksDir)
 			{
 				global_encoder.ticks++;
@@ -178,7 +179,7 @@ bool getEncoderDir()
 		else if(global_encoder.actualB == 1) //Si estando en AB = 00 pasa a AB = 01
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = LEFT;
+			global_encoder.ticksDir = RIGHT; // cambiar a right
 			if(global_encoder.prevTicksDir == global_encoder.ticksDir)
 			{
 				global_encoder.ticks++;
@@ -195,7 +196,7 @@ bool getEncoderDir()
 		if(global_encoder.actualB == 1) //Si estando en AB = 10 pasa a AB = 11
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = RIGHT;
+			global_encoder.ticksDir = LEFT; // cambiar a left
 			global_encoder.ticks++;
 			if (global_encoder.ticks == VUELTA_COMPLETA)
 			{
@@ -218,6 +219,7 @@ bool getEncoderDir()
 					}
 				}
 				gpioToggle(PIN_LED_RED);
+				global_encoder.newData = 1;
 				global_encoder.ticks = 0;
 			}
 			return 1;
@@ -225,7 +227,7 @@ bool getEncoderDir()
 		else if(global_encoder.actualA == 0) //Si estando en AB = 10 pasa a AB = 00
 		{
 			global_encoder.prevTicksDir = global_encoder.ticksDir;
-			global_encoder.ticksDir = LEFT;
+			global_encoder.ticksDir = RIGHT; // cambiar a right
 			global_encoder.ticks++;
 			return 0;
 		}
@@ -242,7 +244,7 @@ bool getEncoderDir()
 bool readEncoderStatus()
 {
 	const bool temp = global_encoder.newData;
-	if (global_encoder.newData)
+	if ((bool)global_encoder.newData)
 	{
 		global_encoder.newData = 0;
 	}
