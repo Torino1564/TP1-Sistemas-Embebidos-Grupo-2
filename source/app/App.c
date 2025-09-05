@@ -75,7 +75,7 @@ void App_Init (void)
 
 	NVIC_EnableIRQ(PORTD_IRQn);
 
-	WriteDisplay("   1234567   ");
+	WriteDisplay("   hola ;;  ");
 }
 
 /* Función que se llama constantemente en un ciclo infinito */

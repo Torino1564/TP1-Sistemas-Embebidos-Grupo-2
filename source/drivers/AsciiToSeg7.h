@@ -1,12 +1,12 @@
 /*
- * Binary2BCD.h
+ * AsciiToSeg7.h
  *
  *  Created on: Aug 25, 2025
- *      Author: jtori
+ *  Author: jtori & jpla
  */
 
-#ifndef APP_BINARY2BCD_H_
-#define APP_BINARY2BCD_H_
+#ifndef APP_ASCII2SEG7_H_
+#define APP_ASCII2SEG7_H_
 
 #include <stdint.h>
 
@@ -20,8 +20,12 @@ typedef struct
 	uint8_t F			: 		1;
 	uint8_t G			: 		1;
 	uint8_t unused		: 		1;
-} bcd_data_t;
+} seg7_t;
 
-bcd_data_t binary_to_bcd(uint8_t binary_data);
+seg7_t binary_to_seg7(uint8_t binary_data);
 
-#endif /* APP_BINARY2BCD_H_ */
+seg7_t ascii_to_seg7(char caracter);
+
+#define CARACTER_OFFSET 10
+
+#endif /* APP_ASCII2SEG7_H_ */

@@ -1,36 +1,38 @@
 /*
- * DIsplay.c
+ * Display.c
  *
  *  Created on: Sep 1, 2025
- *      Author: jtori
+ *  Author: jtori & jpla
+ *
  */
 
-#include "Display.h"
-#include "Timer.h"
+/**************************DRIVERS****************************/
+
+#include "Display.h" // header del driver Display
+#include "Timer.h"   //
 #include "SerialEncoder.h"
-
-// lo de aca abajo se agrega para debuguear
-#include "gpio.h"
-#include "board.h"
-
-#include "Binary2BCD.h"
-
+#include "AsciiToSeg7.h"
 #include <string.h>
 #include <stdlib.h>
 
+
+/**************************VARIABLES**************************/
 static char* data;
 static uint16_t numCharacters;
 static uint16_t currentCharacter;
 static uint16_t stringOffset;
 static service_id serviceId;
 
-//probando
+// este contador es para usar el carrusel
 static uint16_t contador;
 
+/**************************MACROS****************************/
 #define S2P_BYTES (uint8_t)2
 #define NUM_DIGITS 4
 #define MS_PER_DIGIT (1000 / (NUM_DIGITS * DIGIT_REFRESH_RATE))
 
+
+/**************************OBJETOS****************************/
 typedef struct
 {
 	// Padding
@@ -58,6 +60,9 @@ typedef struct
 	uint16_t A 			: 1;
 } ParallelBytes;
 
+
+/**************************FUNCIONES****************************/
+
 void DisplayPISR(void*)
 {
 	const char currentDigit = data[stringOffset + currentCharacter];
@@ -74,30 +79,21 @@ void DisplayPISR(void*)
 	data.unused2 = 0;
 	data.unused3 = 0;
 
-	bcd_data_t bcd = {};
+	seg7_t bcd = {};
 	if (currentDigit >= 0 && currentDigit <= 9)
 	{
-		bcd = binary_to_bcd(currentDigit);
+		bcd = binary_to_seg7(currentDigit);
 	}
 	else if (currentDigit >= '0' && currentDigit <= '9')
 	{
-		bcd = binary_to_bcd(currentDigit - '0');
+		bcd = binary_to_seg7(currentDigit - '0');
 	}
-	else if (currentDigit == ' ')
+	else
 	{
-		bcd.A = 0;
-		bcd.B = 0;
-		bcd.C = 0;
-		bcd.D = 0;
-		bcd.E = 0;
-		bcd.F = 0;
-		bcd.G = 0;
-	}
-	else if ((currentDigit >= 'a' && currentDigit <= 'z') || (currentDigit >= 'A' && currentDigit <= 'Z'))
-	{
-
+		bcd = ascii_to_seg7(currentDigit);
 	}
 
+	// Guardamos el estado de cada segmento
 	data.A = bcd.A;
 	data.B = bcd.B;
 	data.C = bcd.C;
@@ -106,8 +102,11 @@ void DisplayPISR(void*)
 	data.F = bcd.F;
 	data.G = bcd.G;
 
+	// currentCharacter va pasando por cada digito para prender uno a la vez
 	currentCharacter = currentCharacter == NUM_DIGITS - 1 ? 0 : currentCharacter + 1;
 
+	/* El siguiente if else es para hacer el carrusel. Hay que mejorarlo
+	 * */
 	if(contador != 125)
 	{
 		contador++;
@@ -118,23 +117,7 @@ void DisplayPISR(void*)
 		contador = 0;
 	}
 
-	if(stringOffset == 0)
-	{
-		gpioWrite(PIN_LED_RED, LOW);
-		gpioWrite(PIN_LED_BLUE, HIGH);
-	}
-	else if(stringOffset == 1)
-	{
-		gpioWrite(PIN_LED_RED, HIGH);
-		gpioWrite(PIN_LED_BLUE, LOW);
-	}
-	else
-	{
-		gpioWrite(PIN_LED_RED, HIGH);
-		gpioWrite(PIN_LED_BLUE, HIGH);
-	}
-
-	WriteSerialData((uint8_t*)&data);
+	WriteSerialData((uint8_t*)&data); // Le digo al serial que info mandar
 }
 
 void DisplayInit()
