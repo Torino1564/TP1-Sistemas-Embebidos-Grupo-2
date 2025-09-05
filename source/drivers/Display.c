@@ -9,6 +9,10 @@
 #include "Timer.h"
 #include "SerialEncoder.h"
 
+// lo de aca abajo se agrega para debuguear
+#include "gpio.h"
+#include "board.h"
+
 #include "Binary2BCD.h"
 
 #include <string.h>
@@ -19,6 +23,9 @@ static uint16_t numCharacters;
 static uint16_t currentCharacter;
 static uint16_t stringOffset;
 static service_id serviceId;
+
+//probando
+static uint16_t contador;
 
 #define S2P_BYTES (uint8_t)2
 #define NUM_DIGITS 4
@@ -76,6 +83,16 @@ void DisplayPISR(void*)
 	{
 		bcd = binary_to_bcd(currentDigit - '0');
 	}
+	else if (currentDigit == ' ')
+	{
+		bcd.A = 0;
+		bcd.B = 0;
+		bcd.C = 0;
+		bcd.D = 0;
+		bcd.E = 0;
+		bcd.F = 0;
+		bcd.G = 0;
+	}
 	else if ((currentDigit >= 'a' && currentDigit <= 'z') || (currentDigit >= 'A' && currentDigit <= 'Z'))
 	{
 
@@ -90,6 +107,32 @@ void DisplayPISR(void*)
 	data.G = bcd.G;
 
 	currentCharacter = currentCharacter == NUM_DIGITS - 1 ? 0 : currentCharacter + 1;
+
+	if(contador != 125)
+	{
+		contador++;
+	}
+	else
+	{
+		stringOffset = stringOffset == numCharacters - NUM_DIGITS ? 0 : stringOffset + 1;
+		contador = 0;
+	}
+
+	if(stringOffset == 0)
+	{
+		gpioWrite(PIN_LED_RED, LOW);
+		gpioWrite(PIN_LED_BLUE, HIGH);
+	}
+	else if(stringOffset == 1)
+	{
+		gpioWrite(PIN_LED_RED, HIGH);
+		gpioWrite(PIN_LED_BLUE, LOW);
+	}
+	else
+	{
+		gpioWrite(PIN_LED_RED, HIGH);
+		gpioWrite(PIN_LED_BLUE, HIGH);
+	}
 
 	WriteSerialData((uint8_t*)&data);
 }
@@ -110,6 +153,7 @@ void WriteDisplay(const char* pData)
 
 	currentCharacter = 0;
 	stringOffset = 0;
+	contador = 0;
 	numCharacters = (uint16_t)strlen(pData);
 	data = (char*)malloc(numCharacters);
 	strcpy(data, pData);
