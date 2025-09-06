@@ -1,13 +1,12 @@
-/*
- * Display.c
- *
- *  Created on: Sep 1, 2025
- *  Author: jtori & jpla
- *
- */
+/*****************************************************************************
+  @file     Display.c
+  @brief    Driver del display
+  @author   jtori & jpla
+ ******************************************************************************/
 
-/**************************DRIVERS****************************/
-
+/*******************************************************************************
+ *                               ENCABEZADOS
+ ******************************************************************************/
 #include "Display.h" // header del driver Display
 #include "Timer.h"   //
 #include "SerialEncoder.h"
@@ -15,8 +14,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-
-/**************************VARIABLES**************************/
+/*******************************************************************************
+ *                                VARIABLES
+ ******************************************************************************/
 static char* data;
 static uint16_t numCharacters;
 static uint16_t currentCharacter;
@@ -26,13 +26,17 @@ static service_id serviceId;
 // este contador es para usar el carrusel
 static uint16_t contador;
 
-/**************************MACROS****************************/
+/*******************************************************************************
+ *                                 MACROS
+ ******************************************************************************/
 #define S2P_BYTES (uint8_t)2
 #define NUM_DIGITS 4
 #define MS_PER_DIGIT (1000 / (NUM_DIGITS * DIGIT_REFRESH_RATE))
 
 
-/**************************OBJETOS****************************/
+/*******************************************************************************
+ *                                OBJETOS
+ ******************************************************************************/
 typedef struct
 {
 	// Padding
@@ -61,8 +65,9 @@ typedef struct
 } ParallelBytes;
 
 
-/**************************FUNCIONES****************************/
-
+/*******************************************************************************
+ *                                FUNCIONES
+ ******************************************************************************/
 void DisplayPISR(void*)
 {
 	const char currentDigit = data[stringOffset + currentCharacter];
@@ -107,7 +112,7 @@ void DisplayPISR(void*)
 
 	/* El siguiente if else es para hacer el carrusel. Hay que mejorarlo
 	 * */
-	if(contador != 125)
+	if(contador != 50)
 	{
 		contador++;
 	}

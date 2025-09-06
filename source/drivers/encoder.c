@@ -1,12 +1,18 @@
-/***************************************************************************//**
+/*****************************************************************************
   @file     encoder.c
   @brief    Driver for the encoder
-  @author   Group 2
+  @author   jtori & jpla
  ******************************************************************************/
 
+/*******************************************************************************
+ *                                ENCABEZADOS
+ ******************************************************************************/
 #include "encoder.h"
 #include <stdbool.h>
 
+/*******************************************************************************
+ *                                OBJETOS
+ ******************************************************************************/
 typedef struct {
 	pin_t pinA;
 	pin_t pinB;
@@ -24,8 +30,14 @@ typedef struct {
 	uint8_t turns;
 } encoder_t;
 
+/*******************************************************************************
+ *                                VARIABLES
+ ******************************************************************************/
 static encoder_t global_encoder;
 
+/*******************************************************************************
+ *                                ENUMERACIONES
+ ******************************************************************************/
 enum StatesEncoder
 {
 	A0B0,
@@ -35,7 +47,7 @@ enum StatesEncoder
 };
 
 /*******************************************************************************
- *                                FUNCTIONS
+ *                                FUNCIONES
  ******************************************************************************/
 
 void encoder_enable(bool enable)
@@ -67,9 +79,11 @@ bool encoder_init(pin_t senA, pin_t senB)
 
 void getEncoderStatus()
 {
+	// estados de A y B anteriores se guardar
 	global_encoder.prevA = global_encoder.actualA;
 	global_encoder.prevB = global_encoder.actualB;
 
+	// leo los nuevos estados de A y B
 	global_encoder.actualA = gpioRead(global_encoder.pinA);
 	global_encoder.actualB = gpioRead(global_encoder.pinB);
 }

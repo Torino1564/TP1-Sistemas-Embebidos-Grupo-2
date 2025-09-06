@@ -15,6 +15,7 @@ static uint16_t buttonCounter = 0;
 static uint16_t maxButtonCount = START_MAX_BUTTON_COUNT;
 static bool initialized = 0;
 static bool semaphore = 0;
+
 typedef struct
 {
 	pin_t pin;

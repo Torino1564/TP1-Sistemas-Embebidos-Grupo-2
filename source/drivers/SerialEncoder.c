@@ -1,10 +1,12 @@
-/*
- * SerialEncoder.c
- *
- *  Created on: Aug 25, 2025
- *      Author: jtori
- */
+/*****************************************************************************
+  @file     SerialEncoder.c
+  @brief    Parallel to serial Driver
+  @author   jtori
+ ******************************************************************************/
 
+/*******************************************************************************
+ *                                ENCABEZADOS
+ ******************************************************************************/
 #include "gpio.h"
 #include "SerialEncoder.h"
 #include <string.h>
@@ -12,18 +14,21 @@
 #include "Timer.h"
 #include "hardware.h"
 
-// Global State
+/*******************************************************************************
+ *                                VARIABLES
+ ******************************************************************************/
 static uint8_t* data;
 static uint8_t* backBuffer;
 static uint8_t 	byteLenght;
 static uint8_t 	bitsSent;
-
 static bool posTick;
-
 static bool newData;
 static bool completedWord;
 static service_id serviceId;
 
+/*******************************************************************************
+ *                                FUNCIONES
+ ******************************************************************************/
 void SerialEncoderPISR(void*)
 {
 	if (completedWord)

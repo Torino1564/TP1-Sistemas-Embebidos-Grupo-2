@@ -1,13 +1,18 @@
-/*
- * AsciiToSeg7.c
- *
- *  Created on: Aug 25, 2025
- *  Author: jtori & jpla
- */
+/*****************************************************************************
+  @file     AsciiToSeg7.c
+  @brief    Codificación de ASCII a 7 segmentos
+  @author   jtori & jpla
+ ******************************************************************************/
 
+/*******************************************************************************
+ *                               ENCABEZADOS
+ ******************************************************************************/
 #include "AsciiToSeg7.h"
 #include <assert.h>
 
+/*******************************************************************************
+ *                                OBJETOS
+ ******************************************************************************/
 static const seg7_t seg7_table[38] = {
     // Dígitos 0–9
     {1,1,1,1,1,1,0,0}, // 0
@@ -55,6 +60,9 @@ static const seg7_t seg7_table[38] = {
     {0,0,0,0,0,0,1,0},  //  -
 };
 
+/*******************************************************************************
+ *                                FUNCIONES
+ ******************************************************************************/
 seg7_t binary_to_seg7(uint8_t binary_data)
 {
 	return seg7_table[binary_data];
@@ -74,7 +82,7 @@ seg7_t ascii_to_seg7(char caracter)
 	{
 		return seg7_table[36]; // numero magico
 	}
-	else
+	else // si no es un caracter definido, pone un guión
 	{
 		return seg7_table[37]; // guion
 	}

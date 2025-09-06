@@ -1,11 +1,11 @@
-/***************************************************************************//**
+/*****************************************************************************
   @file     App.c
   @brief    Main Application
   @author   Group 2
  ******************************************************************************/
 
 /*******************************************************************************
- *                        INCLUDE HEADER FILES
+ *                                ENCABEZADOS
  ******************************************************************************/
 #include <string.h>
 #include <stdlib.h>
@@ -16,32 +16,32 @@
 #include "drivers/encoder.h"
 #include "drivers/Display.h"
 
+//cositas nuevas
+#include "Segurity.h"
+
 /*******************************************************************************
- *             CONSTANT AND MACRO DEFINITIONS USING #DEFINE
+ *                                MACROS
  ******************************************************************************/
 
 #define MAX_STRING_LENGHT 16
 
 /*******************************************************************************
- *                            GLOBAL STATE
+ *                                VARIABLES
  ******************************************************************************/
-
 static StateMachine stateMachine;
-
 static ticks tick_counter;
-
 static char* id_string;
 static char* pin_string;
+static int currentDigit;
+static char currentNum;
 
-static char currentDigit;
 
 /*******************************************************************************
- *******************************************************************************
-                        GLOBAL FUNCTION DEFINITIONS
- *******************************************************************************
+ *                           FUNCIONES GLOBALES
  ******************************************************************************/
 
 void ProcessInput();
+void enteringID();
 
 /* Función de inicialización */
 void App_Init (void)
@@ -64,18 +64,20 @@ void App_Init (void)
 	memset((void*)id_string, 0, MAX_STRING_LENGHT);
 	memset((void*)pin_string, 0, MAX_STRING_LENGHT);
 
-	currentDigit = '0';
+	currentNum = '0';
+	currentDigit = 0;
 	tick_counter = Now();
 
 	gpioMode(PIN_LED_RED, OUTPUT);
 	gpioMode(PIN_LED_BLUE, OUTPUT);
 
-	gpioWrite(PIN_LED_RED, LOW);
-	gpioWrite(PIN_LED_BLUE, LOW);
+	gpioWrite(PIN_LED_RED, HIGH);
+	gpioWrite(PIN_LED_BLUE, HIGH);
 
 	NVIC_EnableIRQ(PORTD_IRQn);
 
-	WriteDisplay("   hola ;;  ");
+	WriteDisplay("   Ingrese ID    ");
+
 }
 
 /* Función que se llama constantemente en un ciclo infinito */
@@ -84,7 +86,8 @@ void App_Run (void)
 	switch (stateMachine.state)
 	{
 	case IDLE:
-		ProcessInput();
+		//ProcessInput();
+		enteringID();
 		if (stateMachine.validID)
 		{
 			stateMachine.state = PIN;
@@ -117,19 +120,85 @@ void ProcessInput()
 		uint8_t turnDir = readEncoderData();
 		if (turnDir == RIGHT)
 		{
-			currentDigit = currentDigit == '9' ? '0' : currentDigit + 1;
+			currentNum = currentNum == '9' ? '0' : currentNum + 1;
 		}
 		else if (turnDir == LEFT)
 		{
-
-			currentDigit = currentDigit == '0' ? '9' : currentDigit - 1;
+			currentNum = currentNum == '0' ? '9' : currentNum - 1;
 		}
 		else // BUTTON
 		{
 
 		}
 	}
-	//WriteDisplay(&currentDigit);
+	//WriteDisplay(&currentNum);
+}
+
+void enteringID()
+{
+	static int state = 0;
+	if (readEncoderStatus())
+	{
+
+		WriteDisplay(id_string);
+		uint8_t turnDir = readEncoderData();
+		if (turnDir == RIGHT && currentNum != '9')
+		{
+			currentNum = currentNum == '9' ? '0' : currentNum + 1;
+		}
+		else if (turnDir == LEFT)
+		{
+			if(currentNum == '0')
+			{
+				if(currentDigit == 0)
+				{
+					state = 0; // vuelvo al estado 0
+				}
+				else
+				{
+					currentDigit--;
+					size_t len = strlen(id_string);  // longitud actual
+					if (len > 0) {
+						id_string[len - 1] = '\0';   // eliminamos el último carácter
+					}
+				}
+			}
+			else
+			{
+				currentNum = currentNum == '0' ? '9' : currentNum - 1;
+			}
+		}
+		else // BUTTON
+		{
+			strncat(id_string, &currentNum, 1);
+			currentDigit++;
+		}
+	}
+
+	switch(state)
+	{
+	case 0: //first digit
+
+		break;
+
+	case 1: //waiting next digit
+
+		break;
+
+	case 2: //valid id?
+		if(IDSentinel(id_string))
+		{
+			gpioWrite(PIN_LED_RED, LOW);
+			stateMachine.validID = 1;
+		}
+		else
+		{
+			WriteDisplay("   ID invalid   ");
+		}
+		id_string = "0";
+		break;
+	}
+
 }
 
 /*******************************************************************************
