@@ -77,9 +77,12 @@ void App_Init (void)
 	gpioWrite(PIN_LED_RED, HIGH);
 	gpioWrite(PIN_LED_BLUE, HIGH);
 
-	NVIC_EnableIRQ(PORTD_IRQn);
+	gpioMode(PORTNUM2PIN(PC, 10), OUTPUT);
 
-	//WriteDisplay("    Ingrese ID    ");
+	NVIC_EnableIRQ(PORTD_IRQn);
+	NVIC_EnableIRQ(PORTC_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
+
+	WriteDisplay("8888");
 
 }
 
@@ -90,14 +93,7 @@ void App_Run (void)
 	{
 	case IDLE:
 		//ProcessInput();
-		//enteringID();
-		if(readButtonStatus(buttonEncoder))
-		{
-			if(readButtonData(buttonEncoder))
-			{
-				gpioToggle(PIN_LED_RED);
-			}
-		}
+		enteringID();
 		if (stateMachine.validID)
 		{
 			stateMachine.state = PIN;

@@ -82,7 +82,7 @@ service_id TimerRegisterPeriodicInterruption(callback* pCallback, ticks deltaT, 
 	PeriodicService* pService = &pServices[registeredServicesCount];
 
 	pService->pCallback = pCallback;
-	pService->tickInterval = deltaT;
+	pService->tickInterval = deltaT - 1;
 	pService->tickCount = 0;
 	pService->user_data = user_data;
 	pService->enable = 1;

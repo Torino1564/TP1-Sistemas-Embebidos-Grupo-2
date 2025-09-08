@@ -38,7 +38,7 @@ void ButtonISR(void* user_data)
 	Button* pButton = (Button*)(user_data);
 	// Hacer cosas con el boton
 	pButton->pressed = 1;
-	gpioSetupISR(pButton->pin, NO_INT, &ButtonISR, &pButton);
+	gpioSetupISR(pButton->pin, NO_INT, &ButtonISR, pButton);
 	TimerSetEnable(pButton->debouncingIsrId, true);
 }
 
@@ -49,7 +49,7 @@ void DebouncingISR(void* user_data)
 
 
 	Button* pButton = (Button*)(user_data);
-	gpioSetupISR(pButton->pin, pButton->isrType, &ButtonISR, &pButton);
+	gpioSetupISR(pButton->pin, pButton->isrType, &ButtonISR, pButton);
 	TimerSetEnable(pButton->debouncingIsrId,false);
 }
 
@@ -91,7 +91,7 @@ uint16_t NewButton(pin_t pin, bool activeHigh)
 	pButton->tickInterval = 0;
 	pButton->debouncingIsrId = 0;
 	pButton->pressed = 0;
-	pButton->debouncingIsrId = TimerRegisterPeriodicInterruption(&DebouncingISR, MS_TO_TICKS(100), pButton);
+	pButton->debouncingIsrId = TimerRegisterPeriodicInterruption(&DebouncingISR, MS_TO_TICKS(400), pButton);
 	TimerSetEnable(pButton->debouncingIsrId, false);
 
 	gpioMode(pButton->pin, pButton->inputMode);

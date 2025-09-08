@@ -44,30 +44,34 @@ void SerialEncoderPISR(void*)
 		}
 		return;
 	}
-	if (posTick)
-	{
-		posTick = 0;
-		gpioWrite(SERIAL_CLK_PIN, 1u);
-	}
 	else
 	{
-		// clock
-		posTick = 1;
-		gpioWrite(SERIAL_CLK_PIN, 0u);
-
-		// Check if end of the word
-		if (bitsSent == byteLenght * 8)
+		if (posTick)
 		{
-			bitsSent = 0;
-			completedWord = 1;
-			gpioWrite(DATA_READY_PIN, 1u);
+			posTick = 0;
+			gpioWrite(SERIAL_CLK_PIN, 1u);
 		}
-		const uint8_t byteNumber = bitsSent / 8;
-		const uint8_t byteOffset = bitsSent % 8;
-		// Send bits
-		gpioWrite(SERIAL_DATA_PIN, (data[byteNumber] >> byteOffset) & 0b01);
-		bitsSent++;
+		else
+		{
+			// clock
+			posTick = 1;
+			gpioWrite(SERIAL_CLK_PIN, 0u);
+
+			// Check if end of the word
+			if (bitsSent == byteLenght * 8)
+			{
+				bitsSent = 0;
+				completedWord = 1;
+				gpioWrite(DATA_READY_PIN, 1u);
+			}
+			const uint8_t byteNumber = bitsSent / 8;
+			const uint8_t byteOffset = bitsSent % 8;
+			// Send bits
+			gpioWrite(SERIAL_DATA_PIN, (data[byteNumber] >> byteOffset) & 0b01);
+			bitsSent++;
+		}
 	}
+
 }
 
 bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
@@ -88,7 +92,7 @@ bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 	gpioMode(DATA_READY_PIN, OUTPUT);
 
 	// Register service
-	serviceId = TimerRegisterPeriodicInterruption(&SerialEncoderPISR, MS_TO_TICKS((float)1/(float)serialClkKHz), 0);
+	serviceId = TimerRegisterPeriodicInterruption(&SerialEncoderPISR, MS_TO_TICKS((float)0.5/(float)serialClkKHz), 0);
 	return 0;
 }
 

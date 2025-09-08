@@ -18,6 +18,8 @@ static CallbackAndState callbackMatrix[160] = {0};
  *                                FUNCTIONS
  ******************************************************************************/
 
+
+
 void gpioSetupISR(pin_t pin, uint8_t interrupt_mode, callback* pCallback, void* user_data)
 {
 	uint32_t portValue = (interrupt_mode<<PORT_PCR_IRQC_SHIFT);

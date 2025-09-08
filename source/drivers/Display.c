@@ -13,6 +13,7 @@
 #include "AsciiToSeg7.h"
 #include <string.h>
 #include <stdlib.h>
+#include "gpio.h"
 
 /*******************************************************************************
  *                                VARIABLES
@@ -70,6 +71,7 @@ typedef struct
  ******************************************************************************/
 void DisplayPISR(void*)
 {
+	gpioToggle(PORTNUM2PIN(PC, 10));
 	const char currentDigit = data[stringOffset + currentCharacter];
 
 	ParallelBytes data = {};
@@ -118,6 +120,10 @@ void DisplayPISR(void*)
 		{
 			stringOffset = 0;
 		}
+		else if (numCharacters - stringOffset <= 4)
+		{
+			stringOffset = 0;
+		}
 		else
 		{
 			stringOffset++;
@@ -126,6 +132,7 @@ void DisplayPISR(void*)
 	}
 
 	WriteSerialData((uint8_t*)&data); // Le digo al serial que info mandar
+	gpioToggle(PORTNUM2PIN(PC, 10));
 }
 
 void DisplayInit()
@@ -134,8 +141,8 @@ void DisplayInit()
 	{
 		free(data);
 	}
-	InitSerialEncoder(S2P_BYTES, 4*((8 * S2P_BYTES)/MS_PER_DIGIT));
-	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT), 0);
+	InitSerialEncoder(S2P_BYTES, 2*4*((8 * S2P_BYTES)/MS_PER_DIGIT));
+	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT/4), 0);
 }
 
 
