@@ -39,7 +39,7 @@ void ButtonISR(void* user_data)
 	// Hacer cosas con el boton
 	pButton->pressed = 1;
 	gpioSetupISR(pButton->pin, NO_INT, &ButtonISR, &pButton);
-	TimerSetEnable(pButton->debouncingIsrId, 1);
+	TimerSetEnable(pButton->debouncingIsrId, true);
 }
 
 void DebouncingISR(void* user_data)
@@ -47,8 +47,10 @@ void DebouncingISR(void* user_data)
 	if (semaphore)
 		return;
 
+
 	Button* pButton = (Button*)(user_data);
 	gpioSetupISR(pButton->pin, pButton->isrType, &ButtonISR, &pButton);
+	TimerSetEnable(pButton->debouncingIsrId,false);
 }
 
 void InitButtonDriver()
@@ -90,9 +92,22 @@ uint16_t NewButton(pin_t pin, bool activeHigh)
 	pButton->debouncingIsrId = 0;
 	pButton->pressed = 0;
 	pButton->debouncingIsrId = TimerRegisterPeriodicInterruption(&DebouncingISR, MS_TO_TICKS(100), pButton);
+	TimerSetEnable(pButton->debouncingIsrId, false);
 
 	gpioMode(pButton->pin, pButton->inputMode);
 	gpioSetupISR(pButton->pin, pButton->isrType, &ButtonISR, &buttonArray[buttonId]);
 
 	return buttonId;
+}
+
+bool readButtonStatus(uint16_t buttonId)
+{
+	return buttonArray[buttonId].pressed;
+}
+
+bool readButtonData(uint16_t buttonId)
+{
+	bool temp = (bool)buttonArray[buttonId].pressed;
+	buttonArray[buttonId].pressed = 0;
+	return temp;
 }

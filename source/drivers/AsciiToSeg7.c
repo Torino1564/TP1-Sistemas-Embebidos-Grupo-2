@@ -13,7 +13,7 @@
 /*******************************************************************************
  *                                OBJETOS
  ******************************************************************************/
-static const seg7_t seg7_table[38] = {
+static const seg7_t seg7_table[39] = {
     // Dígitos 0–9
     {1,1,1,1,1,1,0,0}, // 0
     {0,1,1,0,0,0,0,0}, // 1
@@ -57,7 +57,8 @@ static const seg7_t seg7_table[38] = {
 
 	// Caracteres Especiales
     {0,0,0,0,0,0,0,0}, // ' '
-    {0,0,0,0,0,0,1,0},  //  -
+    {0,0,0,0,0,0,1,0}, //  -
+	{0,0,0,0,0,0,0,0}, // 38 nada
 };
 
 /*******************************************************************************
@@ -78,9 +79,21 @@ seg7_t ascii_to_seg7(char caracter)
 	{
 		return seg7_table[caracter - 'A' + CARACTER_OFFSET];
 	}
+	else if (caracter >= '0' && caracter <= '9')
+	{
+		return seg7_table[caracter - '0'];
+	}
 	else if (caracter == ' ')
 	{
 		return seg7_table[36]; // numero magico
+	}
+	else if(caracter == '~')
+	{
+		return seg7_table[38]; // nada
+	}
+	else if(caracter == 0)
+	{
+		return seg7_table[38];
 	}
 	else // si no es un caracter definido, pone un guión
 	{

@@ -11,8 +11,14 @@
 #include <stdbool.h>
 #include "Timer.h"
 #include "gpio.h"
+
+
+
 uint16_t NewButton(pin_t pin, bool activeHigh);
 bool SetDebouncing(uint16_t buttonId, ticks dt);
+
+bool readButtonStatus(uint16_t buttonId);
+bool readButtonData(uint16_t buttonId);
 
 void DeleteButton();
 

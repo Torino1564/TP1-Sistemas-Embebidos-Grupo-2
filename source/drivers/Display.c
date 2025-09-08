@@ -85,11 +85,7 @@ void DisplayPISR(void*)
 	data.unused3 = 0;
 
 	seg7_t bcd = {};
-	if (currentDigit >= 0 && currentDigit <= 9)
-	{
-		bcd = binary_to_seg7(currentDigit);
-	}
-	else if (currentDigit >= '0' && currentDigit <= '9')
+	if (currentDigit >= '0' && currentDigit <= '9')
 	{
 		bcd = binary_to_seg7(currentDigit - '0');
 	}
@@ -118,7 +114,14 @@ void DisplayPISR(void*)
 	}
 	else
 	{
-		stringOffset = stringOffset == numCharacters - NUM_DIGITS ? 0 : stringOffset + 1;
+		if(numCharacters - NUM_DIGITS <= 0)
+		{
+			stringOffset = 0;
+		}
+		else
+		{
+			stringOffset++;
+		}
 		contador = 0;
 	}
 
@@ -127,6 +130,10 @@ void DisplayPISR(void*)
 
 void DisplayInit()
 {
+	if (data != NULL)
+	{
+		free(data);
+	}
 	InitSerialEncoder(S2P_BYTES, 4*((8 * S2P_BYTES)/MS_PER_DIGIT));
 	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT), 0);
 }
@@ -143,6 +150,8 @@ void WriteDisplay(const char* pData)
 	stringOffset = 0;
 	contador = 0;
 	numCharacters = (uint16_t)strlen(pData);
+	numCharacters = numCharacters < 4 ? 4 : numCharacters;
 	data = (char*)malloc(numCharacters);
+	strcpy(data, "~~~~");
 	strcpy(data, pData);
 }
