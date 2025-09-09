@@ -16,7 +16,7 @@
 /*******************************************************************************
  *                                PROTOTIPOS
  ******************************************************************************/
-bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz);
+bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClk);
 bool WriteSerialData(const uint8_t* pData);
 
 #endif /* DRIVERS_SERIALENCODER_H_ */

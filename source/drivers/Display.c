@@ -32,7 +32,7 @@ static uint16_t contador;
  ******************************************************************************/
 #define S2P_BYTES (uint8_t)2
 #define NUM_DIGITS 4
-#define MS_PER_DIGIT (1000 / (NUM_DIGITS * DIGIT_REFRESH_RATE))
+#define MS_PER_DIGIT ((float)1000 / (float)(DIGIT_REFRESH_RATE))
 
 
 /*******************************************************************************
@@ -71,8 +71,21 @@ typedef struct
  ******************************************************************************/
 void DisplayPISR(void*)
 {
+	static uint8_t brillo = BRIGHTNESS_LEVEL;
+
+	brillo --;
+
 	gpioToggle(PORTNUM2PIN(PC, 10));
-	const char currentDigit = data[stringOffset + currentCharacter];
+	char currentDigit = data[stringOffset + currentCharacter];
+
+	if(brillo > 0)
+	{
+		currentDigit = (char)0;
+	}
+	else
+	{
+		brillo = BRIGHTNESS_LEVEL;
+	}
 
 	ParallelBytes data = {};
 	data.Dig0 = currentCharacter & 0b01;
@@ -141,8 +154,9 @@ void DisplayInit()
 	{
 		free(data);
 	}
-	InitSerialEncoder(S2P_BYTES, 2*4*((8 * S2P_BYTES)/MS_PER_DIGIT));
-	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT/4), 0);
+	//InitSerialEncoder(S2P_BYTES, (uint16_t)( (float)(1000)*(3*4*((8 * S2P_BYTES))/(float)MS_PER_DIGIT)));
+	InitSerialEncoder(S2P_BYTES, TICKS_PER_SECOND/2);
+	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT/(float)4), 0);
 }
 
 

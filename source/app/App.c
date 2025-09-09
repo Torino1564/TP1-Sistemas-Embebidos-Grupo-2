@@ -82,7 +82,7 @@ void App_Init (void)
 	NVIC_EnableIRQ(PORTD_IRQn);
 	NVIC_EnableIRQ(PORTC_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
 
-	WriteDisplay("8888");
+	WriteDisplay("1234");
 
 }
 

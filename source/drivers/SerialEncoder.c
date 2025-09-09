@@ -74,7 +74,7 @@ void SerialEncoderPISR(void*)
 
 }
 
-bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
+bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClk)
 {
 	byteLenght = wordByteLenght;
 
@@ -92,7 +92,7 @@ bool InitSerialEncoder(uint8_t wordByteLenght, uint32_t serialClkKHz)
 	gpioMode(DATA_READY_PIN, OUTPUT);
 
 	// Register service
-	serviceId = TimerRegisterPeriodicInterruption(&SerialEncoderPISR, MS_TO_TICKS((float)0.5/(float)serialClkKHz), 0);
+	serviceId = TimerRegisterPeriodicInterruption(&SerialEncoderPISR, MS_TO_TICKS((float)500/(float)serialClk), 0);
 	return 0;
 }
 
