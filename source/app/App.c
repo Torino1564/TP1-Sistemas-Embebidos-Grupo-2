@@ -71,11 +71,11 @@ void App_Init (void)
 	currentDigit = 0;
 	tick_counter = Now();
 
-	gpioMode(PIN_LED_RED, OUTPUT);
-	gpioMode(PIN_LED_BLUE, OUTPUT);
+	gpioMode(PIN_LED_GREEN, OUTPUT);
 
 	gpioWrite(PIN_LED_RED, HIGH);
 	gpioWrite(PIN_LED_BLUE, HIGH);
+	gpioWrite(PIN_LED_GREEN, HIGH);
 
 	gpioMode(PORTNUM2PIN(PC, 10), OUTPUT);
 
@@ -197,6 +197,7 @@ void enteringID()
 			{
 				if(buttonData == BUTTON_PRESSED)
 				{
+					gpioToggle(PIN_LED_GREEN);
 					strncat(id_string, &currentNum, 1);
 					currentDigit++;
 				}
@@ -219,7 +220,7 @@ void enteringID()
 		}
 		else
 		{
-			WriteDisplay("   ID invalid   ");
+			WriteDisplay("ID invalid   ");
 		}
 		id_string = "0";
 		break;
