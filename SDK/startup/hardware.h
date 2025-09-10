@@ -24,9 +24,14 @@
 #define ENCODER_B 			PORTNUM2PIN(PD,3)
 #define ENCODER_C 			PORTNUM2PIN(PD,2)
 
+#define MAG_ENABLE 			PORTNUM2PIN(PB,9)
+#define MAG_CLOCK 			PORTNUM2PIN(PC,17)
+#define MAG_DATA 			PORTNUM2PIN(PC,16)
+
 #define SERIAL_DATA_PIN		PORTNUM2PIN(PA, 2)
 #define SERIAL_CLK_PIN		PORTNUM2PIN(PC, 3)
 #define DATA_READY_PIN		PORTNUM2PIN(PC, 2)
+
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS

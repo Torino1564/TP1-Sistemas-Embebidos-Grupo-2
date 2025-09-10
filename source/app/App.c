@@ -17,6 +17,7 @@
 #include "drivers/encoder.h"
 #include "drivers/Display.h"
 #include "drivers/Button.h"
+#include "drivers/MagneticStrip.h"
 
 //cositas nuevas
 #include "Segurity.h"
@@ -53,6 +54,7 @@ void App_Init (void)
 	// Arrancar perifericos
 	TimerInit();
 	DisplayInit();
+	bandaMag_init(MAG_DATA, MAG_CLOCK, MAG_ENABLE);
 	buttonEncoder = NewButton(ENCODER_C, false);
 	encoder_init(ENCODER_A, ENCODER_B);
 
@@ -79,8 +81,11 @@ void App_Init (void)
 
 	gpioMode(PORTNUM2PIN(PC, 10), OUTPUT);
 
+	NVIC_EnableIRQ(PORTE_IRQn);
 	NVIC_EnableIRQ(PORTD_IRQn);
 	NVIC_EnableIRQ(PORTC_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
+	NVIC_EnableIRQ(PORTB_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
+	NVIC_EnableIRQ(PORTA_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
 
 	WriteDisplay("1234");
 
@@ -92,7 +97,11 @@ void App_Run (void)
 	switch (stateMachine.state)
 	{
 	case IDLE:
-		enteringID();
+		//enteringID();
+		if(bandaMag_getID(id_string))
+		{
+			WriteDisplay(id_string);
+		}
 		if (stateMachine.validID)
 		{
 			stateMachine.state = PIN;

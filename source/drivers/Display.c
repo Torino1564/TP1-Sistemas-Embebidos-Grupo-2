@@ -123,7 +123,7 @@ void DisplayPISR(void*)
 
 	/* El siguiente if else es para hacer el carrusel. Hay que mejorarlo
 	 * */
-	if(contador != 50)
+	if(contador != 500)
 	{
 		contador++;
 	}
@@ -171,8 +171,9 @@ void WriteDisplay(const char* pData)
 	stringOffset = 0;
 	contador = 0;
 	numCharacters = (uint16_t)strlen(pData);
-	numCharacters = numCharacters < 4 ? 4 : numCharacters;
+	numCharacters = numCharacters < 4 ? 4 : numCharacters + 8;
 	data = (char*)malloc(numCharacters);
+
 	strcpy(data, "~~~~");
 	strcpy(data, pData);
 }
