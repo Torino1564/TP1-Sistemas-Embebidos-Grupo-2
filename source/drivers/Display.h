@@ -12,7 +12,7 @@
  *                               DEFINICIONES
  ******************************************************************************/
 #define DIGIT_REFRESH_RATE 50 * 5
-#define BRIGHTNESS_LEVEL 5
+#define BRIGHTNESS_LEVEL 1
 
 /*******************************************************************************
  *                                PROTOTIPOS

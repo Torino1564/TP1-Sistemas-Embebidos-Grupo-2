@@ -12,8 +12,7 @@
 #define START_MAX_BUTTON_COUNT (int)8;
 
 static uint16_t buttonCounter = 0;
-static uint16_t maxButtonCount = START_MAX_BUTTON_COUNT;
-static bool initialized = 0;
+static uint16_t maxButtonCount = 0;
 static bool semaphore = 0;
 
 typedef struct
@@ -23,8 +22,10 @@ typedef struct
 	uint8_t inputMode;
 	uint8_t isrType;
 
-	bool pressed;
-	uint16_t tickInterval;
+	uint8_t state;
+	ticks holdTickInterval;
+	ticks ticksPicture;
+	ticks debouncingTickInterval;
 	service_id debouncingIsrId;
 } Button;
 
@@ -32,12 +33,32 @@ static Button* buttonArray;
 
 void ButtonISR(void* user_data)
 {
+	Button* pButton = (Button*)(user_data);
+
+	bool pinStatus = gpioRead(pButton->pin);
+
 	if (semaphore)
 		return;
 
-	Button* pButton = (Button*)(user_data);
-	// Hacer cosas con el boton
-	pButton->pressed = 1;
+
+
+	if((pinStatus && pButton->inputMode == INPUT_PULLDOWN) || (!pinStatus && pButton->inputMode == INPUT_PULLUP))
+	{
+		pButton->ticksPicture = Now();
+	}
+	else
+	{
+		ticks now = Now();
+		if(now - pButton->ticksPicture >= pButton->holdTickInterval)
+		{
+			pButton->state = BUTTON_HELD;
+		}
+		else
+		{
+			pButton->state = BUTTON_PRESSED;
+		}
+	}
+
 	gpioSetupISR(pButton->pin, NO_INT, &ButtonISR, pButton);
 	TimerSetEnable(pButton->debouncingIsrId, true);
 }
@@ -53,19 +74,8 @@ void DebouncingISR(void* user_data)
 	TimerSetEnable(pButton->debouncingIsrId,false);
 }
 
-void InitButtonDriver()
-{
-	initialized = true;
-	buttonArray = (Button*)calloc(maxButtonCount, sizeof(Button));
-}
-
 uint16_t NewButton(pin_t pin, bool activeHigh)
 {
-	if (!initialized)
-	{
-		InitButtonDriver();
-	}
-
 	if (buttonCounter + 1 >= maxButtonCount)
 	{
 		semaphore = 1;
@@ -87,14 +97,16 @@ uint16_t NewButton(pin_t pin, bool activeHigh)
 
 	pButton->pin = pin;
 	pButton->inputMode = activeHigh ? INPUT_PULLDOWN : INPUT_PULLUP;
-	pButton->isrType = activeHigh ? FLAG_INT_POSEDGE : FLAG_INT_NEGEDGE;
-	pButton->tickInterval = 0;
+	pButton->isrType = FLAG_INT_EDGE;
+	pButton->debouncingTickInterval = 0;
 	pButton->debouncingIsrId = 0;
-	pButton->pressed = 0;
-	pButton->debouncingIsrId = TimerRegisterPeriodicInterruption(&DebouncingISR, MS_TO_TICKS(400), pButton);
+	pButton->state = BUTTON_IDLE;
+	pButton->debouncingIsrId = TimerRegisterPeriodicInterruption(&DebouncingISR, MS_TO_TICKS(20), pButton);
+	pButton->holdTickInterval = MS_TO_TICKS(1000);
 	TimerSetEnable(pButton->debouncingIsrId, false);
 
 	gpioMode(pButton->pin, pButton->inputMode);
+	gpioSetSlewRate(pButton->pin, 1);
 	gpioSetupISR(pButton->pin, pButton->isrType, &ButtonISR, &buttonArray[buttonId]);
 
 	return buttonId;
@@ -102,12 +114,12 @@ uint16_t NewButton(pin_t pin, bool activeHigh)
 
 bool readButtonStatus(uint16_t buttonId)
 {
-	return buttonArray[buttonId].pressed;
+	return (bool)buttonArray[buttonId].state;
 }
 
-bool readButtonData(uint16_t buttonId)
+uint8_t readButtonData(uint16_t buttonId)
 {
-	bool temp = (bool)buttonArray[buttonId].pressed;
-	buttonArray[buttonId].pressed = 0;
+	uint8_t temp = buttonArray[buttonId].state;
+	buttonArray[buttonId].state= BUTTON_IDLE;
 	return temp;
 }

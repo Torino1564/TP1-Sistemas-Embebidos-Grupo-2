@@ -114,17 +114,38 @@ bool gpioRead (pin_t pin)
 	return result;
 }
 
+void gpioSetSlewRate(pin_t pin, bool slewRateLow)
+{
+	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
+
+	uint32_t perisferic = portBase[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] & PORT_PCR_MUX_MASK;
+	perisferic = perisferic >> PORT_PCR_MUX_SHIFT;
+	if(!(perisferic == 0b001))
+	{
+		return; // si el puerto no esta configurado como gpio saltea el resto
+	}
+
+	uint32_t portValue = (slewRateLow<<PORT_PCR_SRE_SHIFT); // el valor que debo ingresar al port
+	uint32_t portMask = PORT_PCR_SRE_MASK; // mascara para modificar el pull enable, el pull set y el mux
+
+	portBase[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] = ((portBase[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] & ~portMask) | portValue);
+}
+
 void PortX_IRQImpl(uint8_t portNumber)
 {
 	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
 	uint32_t ISFR = portBase[portNumber]->ISFR;
 	uint8_t contador = 0;
-	while(!(ISFR & 0x01))
+	while(!(ISFR & 0x01) && ISFR != 0)
 	{
 		ISFR = ISFR>>1;
 		contador++;
 	}
-	//que debo hacer? borro el flag o no?
+
+	if(contador == 0)
+	{
+		return;
+	}
 
 	portBase[portNumber]->ISFR = 1<<contador;
 	CallbackAndState* p = &callbackMatrix[portNumber*32 + contador];

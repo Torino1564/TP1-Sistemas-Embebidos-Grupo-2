@@ -53,7 +53,7 @@ void App_Init (void)
 	// Arrancar perifericos
 	TimerInit();
 	DisplayInit();
-	buttonEncoder = NewButton(ENCODER_C, true);
+	buttonEncoder = NewButton(ENCODER_C, false);
 	encoder_init(ENCODER_A, ENCODER_B);
 
 	// Estado inicial de la FSM
@@ -92,7 +92,6 @@ void App_Run (void)
 	switch (stateMachine.state)
 	{
 	case IDLE:
-		//ProcessInput();
 		enteringID();
 		if (stateMachine.validID)
 		{
@@ -142,76 +141,80 @@ void ProcessInput()
 
 void enteringID()
 {
-	static int firstTurn = true;
 	static int state = 0;
+	static int firstTurn = true;
 	bool encoderStatus = readEncoderStatus();
 	bool buttonStatus = readButtonStatus(buttonEncoder);
-	if (encoderStatus || buttonStatus)
-	{
-		if(encoderStatus)
-		{
-			if(firstTurn)
-			{
-				WriteDisplay("0");
-				firstTurn = false;
-			}
-			else
-			{
-				uint8_t turnDir = readEncoderData();
-				if (turnDir == RIGHT && currentNum != '9')
-				{
-					currentNum = currentNum == '9' ? '0' : currentNum + 1;
-					id_string[currentDigit] = currentNum;
-				}
-				else if (turnDir == LEFT)
-				{
-					if(currentNum == '0')
-					{
-						if(currentDigit == 0)
-						{
-							state = 0; // vuelvo al estado 0
-						}
-						else
-						{
-							currentDigit--;
-							size_t len = strlen(id_string);  // longitud actual
-							if (len > 0) {
-								id_string[len - 1] = '\0';   // eliminamos el último carácter
-							}
-							id_string[currentDigit] = currentNum;
-						}
-					}
-					else
-					{
-						currentNum = currentNum == '0' ? '9' : currentNum - 1;
-						id_string[currentDigit] = currentNum;
-					}
-				}
-			}
-		}
-		else if (readButtonData(buttonEncoder))// BUTTON
-		{
-
-			strncat(id_string, &currentNum, 1);
-			currentDigit++;
-		}
-		WriteDisplay(id_string);
-	}
+	uint8_t buttonData = readButtonData(buttonEncoder);
 
 	switch(state)
 	{
-	case 0: //first digit
+	case 0: //waiting
+		if (encoderStatus || buttonStatus)
+		{
+			if(encoderStatus)
+			{
+				if(firstTurn)
+				{
+					WriteDisplay("0");
+					firstTurn = false;
+				}
+				else
+				{
+					uint8_t turnDir = readEncoderData();
+					if (turnDir == RIGHT && currentNum != '9')
+					{
+						currentNum = currentNum == '9' ? '0' : currentNum + 1;
+						id_string[currentDigit] = currentNum;
+					}
+					else if (turnDir == LEFT)
+					{
+						if(currentNum == '0')
+						{
+							if(currentDigit == 0)
+							{
+								state = 0; // vuelvo al estado 0
+							}
+							else
+							{
+								currentDigit--;
+								size_t len = strlen(id_string);  // longitud actual
+								if (len > 0) {
+									id_string[len - 1] = '\0';   // eliminamos el último carácter
+								}
+								id_string[currentDigit] = currentNum;
+							}
+						}
+						else
+						{
+							currentNum = currentNum == '0' ? '9' : currentNum - 1;
+							id_string[currentDigit] = currentNum;
+						}
+					}
+				}
+			}
+			else if (buttonStatus)// BUTTON
+			{
+				if(buttonData == BUTTON_PRESSED)
+				{
+					strncat(id_string, &currentNum, 1);
+					currentDigit++;
+				}
+				else if(buttonData == BUTTON_HELD)
+				{
+					state = 1;
+				}
+			}
+			WriteDisplay(id_string);
+		}
 
 		break;
 
-	case 1: //waiting next digit
-
-		break;
-
-	case 2: //valid id?
+	case 1: //validating
 		if(IDSentinel(id_string))
 		{
 			gpioWrite(PIN_LED_RED, LOW);
+			WriteDisplay("   ID valid   ");
 			stateMachine.validID = 1;
 		}
 		else

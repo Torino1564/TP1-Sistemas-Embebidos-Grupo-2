@@ -103,6 +103,8 @@ void gpioToggle (pin_t pin);
 bool gpioRead (pin_t pin);
 
 
+void gpioSetSlewRate(pin_t pin, bool slewRateLow);
+
 /**
  * @brief Setup the interrupt mode of a gpio
  * @param Pointer to the ISR, otherwise defaults to empty
