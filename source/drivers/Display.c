@@ -2,18 +2,24 @@
   @file     Display.c
   @brief    Driver del display
   @author   jtori & jpla
+  @version  2.0 - comentando
  ******************************************************************************/
 
 /*******************************************************************************
  *                               ENCABEZADOS
  ******************************************************************************/
-#include "Display.h" // header del driver Display
-#include "Timer.h"   //
-#include "SerialEncoder.h"
-#include "AsciiToSeg7.h"
+// Estandar
 #include <string.h>
 #include <stdlib.h>
-#include "gpio.h"
+
+// Propios HAL
+#include "Display.h" 		// header propio
+#include "Timer.h"   		// hace uso de interrupciones periodicas
+#include "SerialEncoder.h"  //
+#include "AsciiToSeg7.h"	// conversion de datos
+
+// Propios MCAL
+#include "gpio.h"			// para configurar
 
 /*******************************************************************************
  *                                VARIABLES
@@ -24,8 +30,17 @@ static uint16_t currentCharacter;
 static uint16_t stringOffset;
 static service_id serviceId;
 
-// este contador es para usar el carrusel
-static uint16_t contador;
+// Variables del carrusel del display
+static uint16_t carruselCounter;
+static uint16_t carruselTicks;
+
+// Variable del brillo del display
+static uint8_t brightnessCounter;
+static uint8_t brightnessLevel;
+
+// Variables de los leds
+static uint8_t ledsCounter;
+static bool ledsArray[4];
 
 /*******************************************************************************
  *                                 MACROS
@@ -65,40 +80,74 @@ typedef struct
 	uint16_t A 			: 1;
 } ParallelBytes;
 
+/*******************************************************************************
+ *                                PROTOTIPOS
+ ******************************************************************************/
+void DisplayPISR(void*);
 
 /*******************************************************************************
  *                                FUNCIONES
  ******************************************************************************/
+void DisplayInit()
+{
+	if (data != NULL)
+	{
+		free(data);
+	}
+	//InitSerialEncoder(S2P_BYTES, (uint16_t)( (float)(1000)*(3*4*((8 * S2P_BYTES))/(float)MS_PER_DIGIT)));
+	InitSerialEncoder(S2P_BYTES, TICKS_PER_SECOND/2);
+	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT/(float)4), 0);
+
+	// seteo el tiempo de carrusel por default
+	carruselTicks = MS_TO_TICKS(DEFAULT_CARRUSEL_TIME*1000)/MS_TO_TICKS(MS_PER_DIGIT/(float)4);
+
+	// seteo el brillo por default
+	brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL;
+
+	// seteo los leds por defecto
+	memset(ledsArray, 0, sizeof(ledsArray));
+	ledsCounter = 4;
+}
+
+
 void DisplayPISR(void*)
 {
-	static uint8_t brillo = BRIGHTNESS_LEVEL;
-
-	brillo --;
-
-	gpioToggle(PORTNUM2PIN(PC, 10));
+	// obtengo el char para mandar al display
 	char currentDigit = data[stringOffset + currentCharacter];
 
-	if(brillo > 0)
+	// control de brillo
+	brightnessCounter--;
+	if(brightnessCounter > 0)
 	{
 		currentDigit = (char)0;
 	}
 	else
 	{
-		brillo = BRIGHTNESS_LEVEL;
+		brightnessCounter = brightnessLevel;
 	}
 
+	// armo el dato para el encoder
 	ParallelBytes data = {};
 	data.Dig0 = currentCharacter & 0b01;
 	data.Dig1 = (currentCharacter & 0b10) >> 1;
 
-	data.Led0 = 0;
-	data.Led1 = 0;
+	ledsCounter--;
+	if(ledsArray[ledsCounter] && ledsCounter != 0)
+	{
+		data.Led0 = ledsCounter & 0b01;
+		data.Led1 = (ledsCounter & 0b10) >> 1;
+	}
+	else
+	{
+		ledsCounter = 4;
+	}
 
 	data.unused0 = 0;
 	data.unused1 = 0;
 	data.unused2 = 0;
 	data.unused3 = 0;
 
+	// armo el digito en 7 segmentos
 	seg7_t bcd = {};
 	if (currentDigit >= '0' && currentDigit <= '9')
 	{
@@ -121,11 +170,10 @@ void DisplayPISR(void*)
 	// currentCharacter va pasando por cada digito para prender uno a la vez
 	currentCharacter = currentCharacter == NUM_DIGITS - 1 ? 0 : currentCharacter + 1;
 
-	/* El siguiente if else es para hacer el carrusel. Hay que mejorarlo
-	 * */
-	if(contador != 500)
+	// if para el carrusel
+	if(carruselCounter != carruselTicks)
 	{
-		contador++;
+		carruselCounter++;
 	}
 	else
 	{
@@ -141,24 +189,30 @@ void DisplayPISR(void*)
 		{
 			stringOffset++;
 		}
-		contador = 0;
+		carruselCounter = 0;
 	}
 
-	WriteSerialData((uint8_t*)&data); // Le digo al serial que info mandar
-	gpioToggle(PORTNUM2PIN(PC, 10));
+	// Le digo al serial que info mandar
+	WriteSerialData((uint8_t*)&data);
 }
 
-void DisplayInit()
+void DisplaySetLeds(uint8_t ledNum, bool ledOn)
 {
-	if (data != NULL)
+	if(ledNum >= 0 && ledNum <= 3)
 	{
-		free(data);
+		ledsArray[ledNum] = ledOn;
 	}
-	//InitSerialEncoder(S2P_BYTES, (uint16_t)( (float)(1000)*(3*4*((8 * S2P_BYTES))/(float)MS_PER_DIGIT)));
-	InitSerialEncoder(S2P_BYTES, TICKS_PER_SECOND/2);
-	serviceId = TimerRegisterPeriodicInterruption(&DisplayPISR, MS_TO_TICKS(MS_PER_DIGIT/(float)4), 0);
 }
 
+void DisplaySetCarruselTime(uint16_t miliSecs)
+{
+	carruselTicks = MS_TO_TICKS(miliSecs)/MS_TO_TICKS(MS_PER_DIGIT/(float)4);
+}
+
+void DisplaySetBrightnessLevel(uint8_t brightness)
+{
+	brightnessLevel = brightness;
+}
 
 void WriteDisplay(const char* pData)
 {
@@ -169,11 +223,11 @@ void WriteDisplay(const char* pData)
 
 	currentCharacter = 0;
 	stringOffset = 0;
-	contador = 0;
+	carruselCounter = 0;
 	numCharacters = (uint16_t)strlen(pData);
-	numCharacters = numCharacters < 4 ? 4 : numCharacters + 8;
-	data = (char*)malloc(numCharacters);
+	numCharacters = numCharacters <= 4 ? 4 : numCharacters + 7;
+	data = (char*)calloc(numCharacters, 1);
 
-	strcpy(data, "~~~~");
-	strcpy(data, pData);
+	//strcpy(data, "~~~~");
+	strcpy(numCharacters <= 4 ? data : data + 3, pData);
 }

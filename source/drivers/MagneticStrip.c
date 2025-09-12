@@ -61,7 +61,7 @@ static void isr_en(void*);                  // ISR de enable (ambos flancos)
 static void decoder_buffer(char* out_buf, uint8_t* out_len); // Parser fuera de ISR
 
 /* ========================= API ========================= */
-void bandaMag_init(pin_t pin_data, pin_t pin_clk, pin_t pin_en)  // Inicializa el driver con los pines
+void MagBandInit(pin_t pin_data, pin_t pin_clk, pin_t pin_en)  // Inicializa el driver con los pines
 {
     pinData   = pin_data;                 // Guarda pin de DATA
     pinClock  = pin_clk;                  // Guarda pin de CLOCK
@@ -76,6 +76,25 @@ void bandaMag_init(pin_t pin_data, pin_t pin_clk, pin_t pin_en)  // Inicializa e
     gpioSetupISR(pinEnable, FLAG_INT_EDGE,    &isr_en, 0); // Llama isr_en en subida y bajada de ENABLE
 
     bandaMag_reset();                     // Deja el estado interno limpio
+}
+
+bool MagBandGetStatus(void)
+{
+	return id_ready;
+}
+
+void MagBandEnableInt(bool enableInt)
+{
+	if(enableInt)
+	{
+		gpioSetupISR(pinClock,  FLAG_INT_NEGEDGE, &isr_clk, 0);
+		gpioSetupISR(pinEnable, FLAG_INT_EDGE,    &isr_en, 0);
+	}
+	else
+	{
+		gpioSetupISR(pinClock,  NO_INT, &isr_clk, 0);
+		gpioSetupISR(pinEnable, NO_INT, &isr_en, 0);
+	}
 }
 
 bool bandaMag_getID(char* out8)           // Devuelve true si entrega 8 dígitos del PAN en out8 + '\0'

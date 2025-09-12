@@ -14,7 +14,11 @@
  */
 
 /* Inicializa pines e interrupciones (CLK flanco descendente, EN ambos) */
-void bandaMag_init(pin_t pin_data, pin_t pin_clk, pin_t pin_en);
+void MagBandInit(pin_t pin_data, pin_t pin_clk, pin_t pin_en);
+
+bool MagBandGetStatus(void); // 1 if new data
+
+void MagBandEnableInt(bool enableInt); // Interrupt Enable
 
 /* Copia los 8 dígitos (ASCII) a out8 y agrega '\0'. Devuelve true si hay uno listo. */
 bool bandaMag_getID(char* out8);

@@ -2,6 +2,7 @@
   @file     App.c
   @brief    Main Application
   @author   Group 2
+  @version  1.0 - coding
  ******************************************************************************/
 
 /*******************************************************************************
@@ -35,6 +36,7 @@ static StateMachine stateMachine;
 static ticks tick_counter;
 static char* id_string;
 static char* pin_string;
+static char* input_string;
 static int currentDigit;
 static char currentNum;
 static uint16_t buttonEncoder;
@@ -43,20 +45,22 @@ static uint16_t buttonEncoder;
  *                           FUNCIONES GLOBALES
  ******************************************************************************/
 
-void ProcessInput();
-void enteringID();
+void EnteringData(void);		// data input read
+void ProcessingData(void);		// data input process
+void ClearInputVariables(void); // clean input variables
+
 
 /* Función de inicialización */
 void App_Init (void)
 {
 	hw_DisableInterrupts();
 
-	// Arrancar perifericos
+	// Arranco los perisfericos
 	TimerInit();
 	DisplayInit();
-	bandaMag_init(MAG_DATA, MAG_CLOCK, MAG_ENABLE);
+	MagBandInit(MAG_DATA, MAG_CLOCK, MAG_ENABLE);
 	buttonEncoder = NewButton(ENCODER_C, false);
-	encoder_init(ENCODER_A, ENCODER_B);
+	EncoderInit(ENCODER_A, ENCODER_B);
 
 	// Estado inicial de la FSM
 	stateMachine.state = IDLE;
@@ -65,9 +69,11 @@ void App_Init (void)
 
 	id_string = (char*)malloc(MAX_STRING_LENGHT);
 	pin_string = (char*)malloc(MAX_STRING_LENGHT);
+	input_string = (char*)malloc(MAX_STRING_LENGHT);
 
 	memset((void*)id_string, 0, MAX_STRING_LENGHT);
 	memset((void*)pin_string, 0, MAX_STRING_LENGHT);
+	memset((void*)input_string, 0, MAX_STRING_LENGHT);
 
 	currentNum = '0';
 	currentDigit = 0;
@@ -87,7 +93,7 @@ void App_Init (void)
 	NVIC_EnableIRQ(PORTB_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
 	NVIC_EnableIRQ(PORTA_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
 
-	WriteDisplay("1234");
+	WriteDisplay("Ingresa ID loco");
 
 }
 
@@ -97,20 +103,20 @@ void App_Run (void)
 	switch (stateMachine.state)
 	{
 	case IDLE:
-		//enteringID();
-		if(bandaMag_getID(id_string))
-		{
-			WriteDisplay(id_string);
-		}
+		EnteringData();
 		if (stateMachine.validID)
 		{
 			stateMachine.state = PIN;
+			MagBandEnableInt(false);
+			DisplaySetLeds(3, true);
 		}
 		break;
 	case PIN:
+		EnteringData();
 		if (stateMachine.validPIN)
 		{
 			stateMachine.state = OPEN;
+			DisplaySetLeds(2, true);
 		}
 		break;
 	case COOLDOWN:
@@ -127,114 +133,125 @@ void App_Run (void)
 	}
 }
 
-void ProcessInput()
+void EnteringData(void)
 {
-	if (readEncoderStatus())
-	{
-		uint8_t turnDir = readEncoderData();
-		if (turnDir == RIGHT)
-		{
-			currentNum = currentNum == '9' ? '0' : currentNum + 1;
-		}
-		else if (turnDir == LEFT)
-		{
-			currentNum = currentNum == '0' ? '9' : currentNum - 1;
-		}
-		else // BUTTON
-		{
-
-		}
-	}
-	//WriteDisplay(&currentNum);
-}
-
-void enteringID()
-{
-	static int state = 0;
 	static int firstTurn = true;
 	bool encoderStatus = readEncoderStatus();
 	bool buttonStatus = readButtonStatus(buttonEncoder);
+	bool cardStatus = MagBandGetStatus();
 	uint8_t buttonData = readButtonData(buttonEncoder);
 
-	switch(state)
+	if (encoderStatus || buttonStatus) // if encoder or button new data
 	{
-	case 0: //waiting
-		if (encoderStatus || buttonStatus)
+		if(encoderStatus)
 		{
-			if(encoderStatus)
+			if(firstTurn)
 			{
-				if(firstTurn)
+				strcpy(input_string, "0");
+				WriteDisplay(input_string);
+				firstTurn = false;
+			}
+			else
+			{
+				uint8_t turnDir = readEncoderData();
+				if (turnDir == RIGHT && currentNum != '9')
 				{
-					WriteDisplay("0");
-					firstTurn = false;
+					currentNum = currentNum == '9' ? '0' : currentNum + 1;
+					input_string[currentDigit] = currentNum;
 				}
-				else
+				else if (turnDir == LEFT)
 				{
-					uint8_t turnDir = readEncoderData();
-					if (turnDir == RIGHT && currentNum != '9')
+					if(currentNum == '0')
 					{
-						currentNum = currentNum == '9' ? '0' : currentNum + 1;
-						id_string[currentDigit] = currentNum;
+						if(currentDigit != 0)
+						{
+							currentDigit--;
+							size_t len = strlen(input_string);  // longitud actual
+							if (len > 0) {
+								input_string[len - 1] = '\0';   // eliminamos el último carácter
+							}
+							input_string[currentDigit] = currentNum;
+						}
 					}
-					else if (turnDir == LEFT)
+					else
 					{
-						if(currentNum == '0')
-						{
-							if(currentDigit == 0)
-							{
-								state = 0; // vuelvo al estado 0
-							}
-							else
-							{
-								currentDigit--;
-								size_t len = strlen(id_string);  // longitud actual
-								if (len > 0) {
-									id_string[len - 1] = '\0';   // eliminamos el último carácter
-								}
-								id_string[currentDigit] = currentNum;
-							}
-						}
-						else
-						{
-							currentNum = currentNum == '0' ? '9' : currentNum - 1;
-							id_string[currentDigit] = currentNum;
-						}
+						currentNum = currentNum == '0' ? '9' : currentNum - 1;
+						input_string[currentDigit] = currentNum;
 					}
 				}
 			}
-			else if (buttonStatus)// BUTTON
-			{
-				if(buttonData == BUTTON_PRESSED)
-				{
-					gpioToggle(PIN_LED_GREEN);
-					strncat(id_string, &currentNum, 1);
-					currentDigit++;
-				}
-				else if(buttonData == BUTTON_HELD)
-				{
-					state = 1;
-				}
-			}
-			WriteDisplay(id_string);
+			WriteDisplay(input_string);
 		}
+		else if (buttonStatus)// BUTTON
+		{
+			if(buttonData == BUTTON_PRESSED)
+			{
+				gpioToggle(PIN_LED_GREEN);
+				strncat(input_string, &currentNum, 1);
+				currentDigit++;
+				WriteDisplay(input_string);
+			}
+			else if(buttonData == BUTTON_HELD)
+			{
+				// Si holdeo el boton, debo procesar los datos
+				ProcessingData();
+			}
+		}
+	}
+	else if(cardStatus)
+	{
+		memset((void*)input_string, 0, MAX_STRING_LENGHT);
+		bandaMag_getID(input_string);
+		WriteDisplay(input_string);
+
+		// Si se pasa la tarjeta, evaluo el ID
+		ProcessingData();
+	}
+}
+
+void ProcessingData(void)
+{
+	switch(stateMachine.state)
+	{
+	case IDLE: // checking ID entered
+		if(IDSentinel(input_string))
+		{
+			WriteDisplay("valid id");
+			stateMachine.validID = 1;
+			strcpy(id_string, input_string);
+		}
+		else // si es invalido sigo en el mismo state idle
+		{
+			WriteDisplay("invalid id");
+		}
+		ClearInputVariables();
 
 		break;
 
-	case 1: //validating
-		if(IDSentinel(id_string))
+	case PIN: // checking PIN typed
+		if(Alohomora(id_string, input_string))
 		{
-			gpioWrite(PIN_LED_RED, LOW);
-			WriteDisplay("   ID valid   ");
-			stateMachine.validID = 1;
+			WriteDisplay("valid pin");
+			stateMachine.validPIN = 1;
+			strcpy(pin_string, input_string);
 		}
 		else
 		{
-			WriteDisplay("ID invalid   ");
+			WriteDisplay("invalid pin");
+			ClearInputVariables();
 		}
-		id_string = "0";
 		break;
 	}
+}
 
+
+
+void ClearInputVariables()
+{
+	memset((void*)input_string, 0, MAX_STRING_LENGHT);
+	currentDigit = 0;
+	currentNum = '0';
+	strcpy(input_string, "0");
 }
 
 /*******************************************************************************

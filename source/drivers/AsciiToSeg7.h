@@ -2,6 +2,7 @@
   @file     AsciiToSeg7.h
   @brief    Codificación de ASCII a 7 segmentos
   @author   jtori & jpla
+  @version  2.0 - comentando
  ******************************************************************************/
 
 #ifndef APP_ASCII2SEG7_H_

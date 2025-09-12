@@ -2,24 +2,25 @@
   @file     encoder.c
   @brief    Driver for the encoder
   @author   jtori & jpla
+  @version  2.0 - commentando
  ******************************************************************************/
 
 /*******************************************************************************
- *                                ENCABEZADOS
+ *                                HEADERS
  ******************************************************************************/
 #include "encoder.h"
 #include <stdbool.h>
 
 /*******************************************************************************
- *                                OBJETOS
+ *                                STRUCTS
  ******************************************************************************/
 typedef struct {
-	pin_t pinA;
-	pin_t pinB;
-	uint16_t actualA		:1; 		// actual state of A
-	uint16_t actualB		:1; 		// actual state of B
-	uint16_t prevA			:1; 		// previous state of A
-	uint16_t prevB			:1; 		// previous state of B
+	pin_t pinA;							// encoder A input pin
+	pin_t pinB;							// encoder B input pin
+	uint16_t actualA		:1; 		// actual value of A
+	uint16_t actualB		:1; 		// actual value of B
+	uint16_t prevA			:1; 		// previous value of A
+	uint16_t prevB			:1; 		// previous value of B
 	uint16_t enable			:1; 		// interrupts enable
 	uint16_t ticksDir		:1; 		// 0 counter clockwise / 1 clockwise
 	uint16_t prevTicksDir	:1;
@@ -61,7 +62,7 @@ void encoder_updated(void* user_data)
 	getEncoderDir(global_encoder);
 }
 
-bool encoder_init(pin_t senA, pin_t senB)
+bool EncoderInit(pin_t senA, pin_t senB)
 {
 	global_encoder.enable = 0;
 	global_encoder.pinA = senA;

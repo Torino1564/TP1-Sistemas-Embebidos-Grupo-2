@@ -2,6 +2,7 @@
   @file     encoder.h
   @brief    Header for the driver of the encoder
   @author   jtori & jpla
+  @version  2.0 - comentando
  ******************************************************************************/
 
 /*******************************************************************************
@@ -19,13 +20,12 @@
 #define BUTTON 2
 #define VUELTA_COMPLETA 4
 
-
 /*******************************************************************************
  *                               PROTOTIPOS
  ******************************************************************************/
 
 //para inicializar el encoder
-bool encoder_init(pin_t senA, pin_t senB);
+bool EncoderInit(pin_t senA, pin_t senB);
 
 /* Es una funcion que habilita o desahabilita el encoder */
 void encoder_enable(bool enable);
