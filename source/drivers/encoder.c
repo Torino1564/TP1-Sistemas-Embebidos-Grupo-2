@@ -21,7 +21,6 @@ typedef struct {
 	uint16_t actualB		:1; 		// actual value of B
 	uint16_t prevA			:1; 		// previous value of A
 	uint16_t prevB			:1; 		// previous value of B
-	uint16_t enable			:1; 		// interrupts enable
 	uint16_t ticksDir		:1; 		// 0 counter clockwise / 1 clockwise
 	uint16_t prevTicksDir	:1;
 	uint16_t turnsDir		:1;
@@ -47,14 +46,18 @@ enum StatesEncoder
 	A1B1
 };
 
+
+/*******************************************************************************
+ *                                PROTOTIPOS
+ ******************************************************************************/
+
+// funciones que no quiero que pueda utilizar el usuario
+void getEncoderStatus();	// para poder actualizar los valores de A y B
+bool getEncoderDir(); 		// devuelve la direccion. 0 izq & 1 der
+
 /*******************************************************************************
  *                                FUNCIONES
  ******************************************************************************/
-
-void encoder_enable(bool enable)
-{
-	global_encoder.enable = enable;
-}
 
 void encoder_updated(void* user_data)
 {
@@ -64,7 +67,6 @@ void encoder_updated(void* user_data)
 
 bool EncoderInit(pin_t senA, pin_t senB)
 {
-	global_encoder.enable = 0;
 	global_encoder.pinA = senA;
 	global_encoder.pinB = senB;
 	global_encoder.actualA = 1;
