@@ -27,7 +27,7 @@ void ClearDisplay();								// all segments and leds off
 void EnableDisplay();								//
 void DisplaySetLeds(uint8_t ledNum, bool ledOn);	// writing board leds
 void DisplaySetCarruselTime(uint16_t miliSecs);		// settine carrusel time
-void DisplaySetBrightnessLevel(uint8_t brightness);	// setting brightness level
+void DisplaySetBrightnessLevel(void);	// setting brightness level
 
 
 #endif /* DRIVERS_DISPLAY_H_ */

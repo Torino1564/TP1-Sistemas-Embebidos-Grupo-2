@@ -48,7 +48,7 @@ static uint16_t buttonEncoder;
 void EnteringData(void);		// data input read
 void ProcessingData(void);		// data input process
 void ClearInputVariables(void); // clean input variables
-
+void ChangeBrightnessLevel(void);
 
 /* Función de inicialización */
 void App_Init (void)
@@ -108,7 +108,6 @@ void App_Run (void)
 		{
 			stateMachine.state = PIN;
 			MagBandEnableInt(false);
-			DisplaySetLeds(3, true);
 		}
 		break;
 	case PIN:
@@ -116,7 +115,6 @@ void App_Run (void)
 		if (stateMachine.validPIN)
 		{
 			stateMachine.state = OPEN;
-			DisplaySetLeds(2, true);
 		}
 		break;
 	case COOLDOWN:
@@ -196,6 +194,10 @@ void EnteringData(void)
 				// Si holdeo el boton, debo procesar los datos
 				ProcessingData();
 			}
+			else if(buttonData == BUTTON_LONG_HELD)
+			{
+				ChangeBrightnessLevel();
+			}
 		}
 	}
 	else if(cardStatus)
@@ -252,6 +254,13 @@ void ClearInputVariables()
 	currentDigit = 0;
 	currentNum = '0';
 	strcpy(input_string, "0");
+}
+
+
+void ChangeBrightnessLevel()
+{
+	DisplaySetBrightnessLevel();
+	return;
 }
 
 /*******************************************************************************

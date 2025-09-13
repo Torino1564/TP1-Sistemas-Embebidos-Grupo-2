@@ -15,6 +15,7 @@
 #define BUTTON_IDLE 0
 #define BUTTON_PRESSED 1
 #define BUTTON_HELD 2
+#define BUTTON_LONG_HELD 3
 
 uint16_t NewButton(pin_t pin, bool activeHigh);
 bool SetDebouncing(uint16_t buttonId, ticks dt);

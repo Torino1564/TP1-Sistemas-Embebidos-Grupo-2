@@ -62,7 +62,11 @@ void DebouncingISR(void* user_data)
 	else
 	{
 		ticks now = Now();
-		if(now - pButton->ticksPicture >= pButton->holdTickInterval)
+		if(now - pButton->ticksPicture >= pButton->holdTickInterval * 3)
+		{
+			pButton->state = BUTTON_LONG_HELD;
+		}
+		else if(now - pButton->ticksPicture >= pButton->holdTickInterval)
 		{
 			pButton->state = BUTTON_HELD;
 		}

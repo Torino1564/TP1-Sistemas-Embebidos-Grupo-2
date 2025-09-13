@@ -11,6 +11,7 @@
 // Estandar
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // Propios HAL
 #include "Display.h" 		// header propio
@@ -36,7 +37,7 @@ static uint16_t carruselTicks;
 
 // Variable del brillo del display
 static uint8_t brightnessCounter;
-static uint8_t brightnessLevel;
+static int8_t brightnessLevel;
 
 // Variables de los leds
 static uint8_t ledsCounter;
@@ -107,6 +108,10 @@ void DisplayInit()
 	// seteo los leds por defecto
 	memset(ledsArray, 0, sizeof(ledsArray));
 	ledsCounter = 4;
+
+	DisplaySetLeds(3, true);
+	DisplaySetLeds(2, true);
+	DisplaySetLeds(1, true);
 }
 
 
@@ -209,9 +214,34 @@ void DisplaySetCarruselTime(uint16_t miliSecs)
 	carruselTicks = MS_TO_TICKS(miliSecs)/MS_TO_TICKS(MS_PER_DIGIT/(float)4);
 }
 
-void DisplaySetBrightnessLevel(uint8_t brightness)
+void DisplaySetBrightnessLevel(void)
 {
-	brightnessLevel = brightness;
+	if(brightnessLevel-2 == -1)
+	{
+		brightnessLevel = 5;
+	}
+	else
+	{
+		brightnessLevel = brightnessLevel - 2;
+	}
+	if(brightnessLevel == 1)
+	{
+		DisplaySetLeds(3, true);
+		DisplaySetLeds(2, true);
+		DisplaySetLeds(1, true);
+	}
+	else if(brightnessLevel == 3)
+	{
+		DisplaySetLeds(3, true);
+		DisplaySetLeds(2, true);
+		DisplaySetLeds(1, false);
+	}
+	else
+	{
+		DisplaySetLeds(3, true);
+		DisplaySetLeds(2, false);
+		DisplaySetLeds(1, false);
+	}
 }
 
 void WriteDisplay(const char* pData)
