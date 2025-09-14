@@ -117,6 +117,10 @@ void App_Run (void)
 			stateMachine.state = OPEN;
 		}
 		break;
+
+	case OPEN:
+
+		break;
 	case COOLDOWN:
 		if (stateMachine.cooldownTicks >= stateMachine.cooldownTime)
 		{
@@ -250,10 +254,13 @@ void ProcessingData(void)
 
 void ClearInputVariables()
 {
+	bandaMag_reset();
 	memset((void*)input_string, 0, MAX_STRING_LENGHT);
 	currentDigit = 0;
 	currentNum = '0';
 	strcpy(input_string, "0");
+	readButtonData(buttonEncoder);
+	readEncoderData();
 }
 
 
