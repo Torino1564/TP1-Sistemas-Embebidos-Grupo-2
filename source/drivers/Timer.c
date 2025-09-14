@@ -124,9 +124,10 @@ ticks Now()
 void Sleep(ticks dt)
 {
 	const ticks start = Now();
-	while (Now() - start < dt)
+	ticks current = Now();
+	while (current - start < dt)
 	{
-		// Nothing
+		current = Now();
 	}
 	return;
 }

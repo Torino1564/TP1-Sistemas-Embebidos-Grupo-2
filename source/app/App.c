@@ -93,7 +93,7 @@ void App_Init (void)
 	NVIC_EnableIRQ(PORTB_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
 	NVIC_EnableIRQ(PORTA_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
 
-	WriteDisplay("Ingresa ID loco");
+	WriteDisplay("Ingrese ID");
 
 }
 
@@ -119,6 +119,16 @@ void App_Run (void)
 		break;
 
 	case OPEN:
+
+		gpioWrite(PIN_LED_GREEN, LOW);
+		Sleep(MS_TO_TICKS(5000));
+		gpioWrite(PIN_LED_GREEN, HIGH);
+		ClearInputVariables();
+		stateMachine.state = IDLE;
+		MagBandEnableInt(true);
+		stateMachine.validID = false;
+		stateMachine.validPIN = false;
+		WriteDisplay("Ingrese ID");
 
 		break;
 	case COOLDOWN:
@@ -188,7 +198,6 @@ void EnteringData(void)
 		{
 			if(buttonData == BUTTON_PRESSED)
 			{
-				gpioToggle(PIN_LED_GREEN);
 				strncat(input_string, &currentNum, 1);
 				currentDigit++;
 				WriteDisplay(input_string);

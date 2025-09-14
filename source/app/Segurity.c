@@ -25,7 +25,7 @@ typedef struct {
 ******************************************************************************/
 static user_t users[10] = {
     { "12345678", "12345", USER },
-	{ "37159500", "00005", USER },
+	{ "37159500", "1111", USER },
     // otros usuarios...
 }; // 10 hay que cambiarlo por el numero de users
 
