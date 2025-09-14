@@ -49,6 +49,7 @@ void gpioMode (pin_t pin, uint8_t mode)
 	portBase[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] = ((portBase[PIN2PORT(pin)]->PCR[PIN2NUM(pin)] & ~portMask) | portValue);
 
 	uint32_t gpioValue = 0;
+
 	if(mode == OUTPUT)
 	{
 		gpioValue = (1<<PIN2NUM(pin));

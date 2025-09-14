@@ -245,13 +245,13 @@ static void isr_clk(void*)                  // Ensambla caracteres de 5 bits en 
 /* ========================= Parseo con LRC (fuera de ISR) ==================== */
 static void decoder_buffer(char* out, uint8_t* out_len)   // Parsea SS→PAN→AD→ES→LRC
 {
-    enum { SS, PAN, AD, LRC, SUCCESS } ps = SS;  // Estados del parser
+    enum { SS, PAN, AD, LRC, SUCCESS } decoderState = SS;  // Estados del parser
     *out_len = 0u;                               // Inicializa largo de salida
     uint8_t ad_count = 0u;                       // Cuenta de caracteres en la sección AD
 
     for (uint8_t i = 0; i < data_buffer_pos; i++)  // Recorre lo recibido por la ISR
     {
-        switch (ps)                                  // Según estado del parser
+        switch (decoderState)                                  // Según estado del parser
         {
             case SS:                                  // Espera ';'
             {
@@ -259,7 +259,7 @@ static void decoder_buffer(char* out, uint8_t* out_len)   // Parsea SS→PAN→A
                 {
                     goto done;                        // Corta parseo (falla)
                 }
-                ps = PAN;                             // Pasa a leer dígitos del PAN
+                decoderState = PAN;                             // Pasa a leer dígitos del PAN
             } break;
 
             case PAN:                                 // Lee dígitos hasta FS '='
@@ -278,7 +278,7 @@ static void decoder_buffer(char* out, uint8_t* out_len)   // Parsea SS→PAN→A
                 }
                 else                                   // Encontró FS '='
                 {
-                    ps = AD;                           // Pasa a datos adicionales
+                    decoderState = AD;                           // Pasa a datos adicionales
                 }
             } break;
 
@@ -294,7 +294,7 @@ static void decoder_buffer(char* out, uint8_t* out_len)   // Parsea SS→PAN→A
                     {
                         goto done;                     // Falla si es demasiado largo
                     }
-                    ps = LRC;                          // Pasa a verificar LRC
+                    decoderState = LRC;                          // Pasa a verificar LRC
                 }
                 else                                   // Mientras no aparezca ES
                 {
@@ -308,7 +308,7 @@ static void decoder_buffer(char* out, uint8_t* out_len)   // Parsea SS→PAN→A
                 {
                     goto done;                          // Falla si no coincide
                 }
-                ps = SUCCESS;                           // Éxito de parseo
+                decoderState = SUCCESS;                           // Éxito de parseo
             } break;
 
             case SUCCESS:                               // Ya terminó; salir
@@ -319,7 +319,7 @@ static void decoder_buffer(char* out, uint8_t* out_len)   // Parsea SS→PAN→A
     }
 
 done:                                                  // Punto común de salida
-    if (ps != SUCCESS)                                 // Si no llegó a SUCCESS
+    if (decoderState != SUCCESS)                                 // Si no llegó a SUCCESS
     {
         *out_len = 0u;                                  // Invalida salida
     }
