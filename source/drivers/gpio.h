@@ -74,6 +74,10 @@ typedef uint8_t pin_t;
 /*******************************************************************************
  * FUNCTION PROTOTYPES WITH GLOBAL SCOPE
  ******************************************************************************/
+/**
+ * @brief Enables the hardware interruption support
+ */
+void gpioInitInterrupts();
 
 /**
  * @brief Configures the specified pin to behave either as an input or an output

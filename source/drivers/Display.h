@@ -27,7 +27,12 @@ void ClearDisplay();								// all segments and leds off
 void EnableDisplay();								//
 void DisplaySetLeds(uint8_t ledNum, bool ledOn);	// writing board leds
 void DisplaySetCarruselTime(uint16_t miliSecs);		// settine carrusel time
-void DisplaySetBrightnessLevel(void);	// setting brightness level
+
+/*
+ * @param Level from 1 to 3. 1 is most intense
+ * @return true if the change was successfull
+ */
+bool DisplaySetBrightnessLevel(uint8_t level);		// setting brightness level
 
 
 #endif /* DRIVERS_DISPLAY_H_ */

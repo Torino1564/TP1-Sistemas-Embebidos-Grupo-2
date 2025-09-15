@@ -23,10 +23,9 @@
 //cositas nuevas
 #include "Segurity.h"
 
-enum {
+enum UserMenuStates {
 	CANCEL,
-	BRIGHTNESS,
-	RETURN
+	BRIGHTNESS
 };
 
 /*******************************************************************************
@@ -39,7 +38,6 @@ enum {
  *                                VARIABLES
  ******************************************************************************/
 static StateMachine stateMachine;
-static ticks tick_counter;
 static char* id_string;
 static char* pin_string;
 static char* input_string;
@@ -51,25 +49,34 @@ static uint16_t buttonEncoder;
  *                           FUNCIONES GLOBALES
  ******************************************************************************/
 
-void EnteringData(void);		// data input read
+bool EnteringData(void);		// data input read
 void ProcessingData(void);		// data input process
 void ClearInputVariables(void); // clean input variables
 void ChangeBrightnessLevel(void);
+void State_Idle();
+void State_Open();
+void State_EnteringPin();
+void State_UserMenu();
+void State_BrightnessMenu();
+void State_Cooldown();
 
 /* Función de inicialización */
 void App_Init (void)
 {
 	hw_DisableInterrupts();
 
-	// Arranco los perisfericos
+	// Arranco los perifericos
 	TimerInit();
+	gpioInitInterrupts();
 	DisplayInit();
 	MagBandInit(MAG_DATA, MAG_CLOCK, MAG_ENABLE);
 	buttonEncoder = NewButton(ENCODER_C, false);
 	EncoderInit(ENCODER_A, ENCODER_B);
 
 	// Estado inicial de la FSM
-	stateMachine.state = IDLE;
+	stateMachine.pStateFunc = &State_Idle;
+	stateMachine.menuState = CANCEL;
+	stateMachine.brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL;
 
 	hw_EnableInterrupts();
 
@@ -81,138 +88,173 @@ void App_Init (void)
 	memset((void*)pin_string, 0, MAX_STRING_LENGHT);
 	memset((void*)input_string, 0, MAX_STRING_LENGHT);
 
-	currentNum = '0';
-	currentDigit = 0;
-	tick_counter = Now();
-
 	gpioMode(PIN_LED_GREEN, OUTPUT);
 
 	gpioWrite(PIN_LED_RED, HIGH);
 	gpioWrite(PIN_LED_BLUE, HIGH);
 	gpioWrite(PIN_LED_GREEN, HIGH);
 
-	gpioMode(PORTNUM2PIN(PC, 10), OUTPUT);
-
-	NVIC_EnableIRQ(PORTE_IRQn);
-	NVIC_EnableIRQ(PORTD_IRQn);
-	NVIC_EnableIRQ(PORTC_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
-	NVIC_EnableIRQ(PORTB_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
-	NVIC_EnableIRQ(PORTA_IRQn); // ESTA MAL, DESPUES LO HACE JOACO
+	ClearInputVariables();
 
 	WriteDisplay("Ingrese ID");
-
 }
 
 /* Función que se llama constantemente en un ciclo infinito */
 void App_Run (void)
 {
-	switch (stateMachine.state)
+	stateMachine.pStateFunc();
+}
+
+void State_Idle()
+{
+	if (EnteringData())
 	{
-	case IDLE:
-		EnteringData();
-		if (stateMachine.validID)
+		if(IDSentinel(input_string))
 		{
-			stateMachine.state = PIN;
-			MagBandEnableInt(false);
+			WriteDisplay("valid id");
+			stateMachine.validID = 1;
+			strcpy(id_string, input_string);
 		}
-		break;
-	case PIN:
-		EnteringData();
-		if (stateMachine.validPIN)
+		else // si es invalido sigo en el mismo state idle
 		{
-			stateMachine.state = OPEN;
+			WriteDisplay("invalid id");
 		}
-		break;
-
-	case OPEN:
-
-		gpioWrite(PIN_LED_GREEN, LOW);
-		Sleep(MS_TO_TICKS(5000));
-		gpioWrite(PIN_LED_GREEN, HIGH);
 		ClearInputVariables();
-		stateMachine.state = IDLE;
-		MagBandEnableInt(true);
-		stateMachine.validID = false;
-		stateMachine.validPIN = false;
-		WriteDisplay("Ingrese ID");
-
-		break;
-
-	case USER_MENU:
-
-		static uint8_t menuState = CANCEL;
-		static uint8_t turnDir;
-		bool encoderStatus = readEncoderStatus();
-		bool buttonStatus = readButtonStatus(buttonEncoder);
-		uint8_t buttonData = readButtonData(buttonEncoder);
+	}
+	if (stateMachine.validID)
+	{
+		stateMachine.pStateFunc = &State_EnteringPin;
 		MagBandEnableInt(false);
-		if(encoderStatus || buttonStatus)
-		{
-			if(encoderStatus)
-			{
-				// encoder
-				turnDir = readEncoderData();
-				if(turnDir && menuState < RETURN)
-				{
-					// derecha
-					menuState++;
-				}
-				else if(!turnDir && menuState > CANCEL)
-				{
-					// izquierda
-					menuState--;
-				}
-			}
-			else
-			{
-				// boton
-				if(buttonData == BUTTON_PRESSED)
-				{
-
-				}
-				else if(buttonData == BUTTON_HELD)
-				{
-
-				}
-				else if(buttonData == BUTTON_LONG_HELD)
-				{
-
-				}
-			}
-
-
-		}
-
-
-		switch(menuState)
-		{
-		case CANCEL: 		// cancelar
-
-			break;
-		case BRIGHTNESS: 	// brillo
-
-			break;
-		case RETURN: 		// vuelvo
-
-			break;
-		}
-
-		break;
-	case COOLDOWN:
-		if (stateMachine.cooldownTicks >= stateMachine.cooldownTime)
-		{
-			stateMachine.state = stateMachine.stateAfterCooldown;
-		}
-		break;
-	// OPCIONAL:
-	case ADMIN:
-	case CHANGE_PIN:
-	default:
-		break;
 	}
 }
 
-void EnteringData(void)
+void State_EnteringPin()
+{
+	if (EnteringData())
+	{
+		if(Alohomora(id_string, input_string))
+		{
+			WriteDisplay("valid pin");
+			stateMachine.validPIN = 1;
+			strcpy(pin_string, input_string);
+		}
+		else
+		{
+			WriteDisplay("invalid pin");
+			ClearInputVariables();
+		}
+	}
+	if (stateMachine.validPIN)
+	{
+		stateMachine.pStateAfterCooldownFunc = &State_Open;
+		stateMachine.pStateFunc = &State_Cooldown;
+		stateMachine.cooldownTicks = MS_TO_TICKS(5000);
+		gpioWrite(PIN_LED_GREEN, LOW);
+		stateMachine.cooldownStartTime = Now();
+	}
+}
+
+void State_Open()
+{
+	gpioWrite(PIN_LED_GREEN, HIGH);
+	MagBandEnableInt(true);
+	WriteDisplay("Ingrese ID");
+	stateMachine.validID = false;
+	stateMachine.validPIN = false;
+	stateMachine.pStateFunc = &State_Idle;
+}
+
+void State_Cooldown()
+{
+	const ticks now = Now();
+	if (now - stateMachine.cooldownStartTime >= stateMachine.cooldownTicks)
+	{
+		if (stateMachine.pStateAfterCooldownFunc != NULL)
+			stateMachine.pStateFunc = stateMachine.pStateAfterCooldownFunc;
+		else
+		{
+			stateMachine.pStateFunc = &State_Idle;
+		}
+		ClearInputVariables();
+	}
+}
+
+void State_UserMenu()
+{
+	uint8_t turnDir = 0;
+	bool encoderStatus = readEncoderStatus();
+	bool buttonStatus = readButtonStatus(buttonEncoder);
+	MagBandEnableInt(false);
+
+	if(encoderStatus)
+	{
+		// encoder
+		turnDir = readEncoderData();
+		if(turnDir && stateMachine.menuState < BRIGHTNESS)
+		{
+			// derecha
+			stateMachine.menuState++;
+		}
+		else if(!turnDir && stateMachine.menuState > CANCEL)
+		{
+			// izquierda
+			stateMachine.menuState--;
+		}
+	}
+
+	if (buttonStatus)
+	{
+		uint8_t buttonData = readButtonData(buttonEncoder);
+		// boton
+		if(buttonData == BUTTON_PRESSED)
+		{
+			switch(stateMachine.menuState)
+			{
+			case CANCEL: 		// cancelar
+				WriteDisplay("Cancelar");
+				stateMachine.pStateFunc = &State_Idle;
+				break;
+			case BRIGHTNESS: 	// brillo
+				WriteDisplay("Brillo");
+				stateMachine.pStateFunc = &State_BrightnessMenu;
+			default:
+				break;
+			}
+		}
+		else if(buttonData == BUTTON_HELD || buttonData == BUTTON_LONG_HELD)
+		{
+			stateMachine.pStateFunc = stateMachine.pMenuCalledFrom;
+			stateMachine.pMenuCalledFrom = NULL;
+		}
+		stateMachine.menuState = CANCEL;
+	}
+
+}
+
+void State_BrightnessMenu()
+{
+	bool encoderStatus = readEncoderStatus();
+	bool buttonStatus = readButtonStatus(buttonEncoder);
+	if (encoderStatus)
+	{
+		uint8_t encoderData = readEncoderData();
+		if (encoderData == RIGHT && stateMachine.brightnessLevel < 3)
+		{
+			stateMachine.brightnessLevel++;
+		}
+		else if (encoderData == LEFT && stateMachine.brightnessLevel > 1)
+		{
+			stateMachine.brightnessLevel--;
+		}
+		DisplaySetBrightnessLevel(stateMachine.brightnessLevel);
+	}
+	if (buttonStatus)
+	{
+		stateMachine.pStateFunc = stateMachine.pMenuCalledFrom;
+	}
+}
+
+bool EnteringData(void)
 {
 	static int firstTurn = true;
 	bool encoderStatus = readEncoderStatus();
@@ -272,11 +314,11 @@ void EnteringData(void)
 			else if(buttonData == BUTTON_HELD)
 			{
 				// Si holdeo el boton, debo procesar los datos
-				ProcessingData();
+				return true;
 			}
 			else if(buttonData == BUTTON_LONG_HELD)
 			{
-				ChangeBrightnessLevel();
+				stateMachine.pStateFunc = &State_UserMenu;
 			}
 		}
 	}
@@ -287,46 +329,11 @@ void EnteringData(void)
 		WriteDisplay(input_string);
 
 		// Si se pasa la tarjeta, evaluo el ID
-		ProcessingData();
+		return true;
 	}
+
+	return false;
 }
-
-void ProcessingData(void)
-{
-	switch(stateMachine.state)
-	{
-	case IDLE: // checking ID entered
-		if(IDSentinel(input_string))
-		{
-			WriteDisplay("valid id");
-			stateMachine.validID = 1;
-			strcpy(id_string, input_string);
-		}
-		else // si es invalido sigo en el mismo state idle
-		{
-			WriteDisplay("invalid id");
-		}
-		ClearInputVariables();
-
-		break;
-
-	case PIN: // checking PIN typed
-		if(Alohomora(id_string, input_string))
-		{
-			WriteDisplay("valid pin");
-			stateMachine.validPIN = 1;
-			strcpy(pin_string, input_string);
-		}
-		else
-		{
-			WriteDisplay("invalid pin");
-			ClearInputVariables();
-		}
-		break;
-	}
-}
-
-
 
 void ClearInputVariables()
 {
@@ -337,13 +344,6 @@ void ClearInputVariables()
 	strcpy(input_string, "0");
 	readButtonData(buttonEncoder);
 	readEncoderData();
-}
-
-
-void ChangeBrightnessLevel()
-{
-	DisplaySetBrightnessLevel();
-	return;
 }
 
 /*******************************************************************************

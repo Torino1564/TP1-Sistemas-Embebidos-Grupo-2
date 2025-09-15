@@ -18,7 +18,14 @@ static CallbackAndState callbackMatrix[160] = {0};
  *                                FUNCTIONS
  ******************************************************************************/
 
-
+void gpioInitInterrupts()
+{
+	NVIC_EnableIRQ(PORTE_IRQn);
+	NVIC_EnableIRQ(PORTD_IRQn);
+	NVIC_EnableIRQ(PORTC_IRQn);
+	NVIC_EnableIRQ(PORTB_IRQn);
+	NVIC_EnableIRQ(PORTA_IRQn);
+}
 
 void gpioSetupISR(pin_t pin, uint8_t interrupt_mode, callback* pCallback, void* user_data)
 {

@@ -13,6 +13,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "drivers/Timer.h"
+
 /*******************************************************************************
 *                                ENUMERACIONES
 ******************************************************************************/
@@ -30,14 +32,15 @@ enum States
 /*******************************************************************************
 *                                  OBJETOS
 ******************************************************************************/
-typedef struct {
+typedef struct
+{
 	// Estado actual
-	uint8_t state;
-	uint8_t stateAfterCooldown;
+	void (*pStateFunc)();
+	void (*pStateAfterCooldownFunc)();
 
 	// Cooldown
-	uint8_t cooldownTime;
-	uint32_t cooldownTicks;
+	ticks cooldownStartTime;
+	ticks cooldownTicks;
 
 	// Timeout
 	uint8_t maxTimeout;
@@ -47,7 +50,14 @@ typedef struct {
 	bool validID;
 	bool validPIN;
 	uint8_t remainingAttemps;
-}
-StateMachine;
+
+	// User Menu
+	uint8_t menuState;
+	void (*pMenuCalledFrom)();
+
+	// Brightness
+	uint8_t brightnessLevel;
+
+} StateMachine;
 
 #endif
