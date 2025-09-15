@@ -32,6 +32,9 @@
 #define SERIAL_CLK_PIN		PORTNUM2PIN(PC, 3)
 #define DATA_READY_PIN		PORTNUM2PIN(PC, 2)
 
+#define SYSTICK_ISR         PORTNUM2PIN(PB, 2)
+#define PORT_ISR         	PORTNUM2PIN(PB, 3)
+
 
 /*******************************************************************************
  * ENUMERATIONS AND STRUCTURES AND TYPEDEFS

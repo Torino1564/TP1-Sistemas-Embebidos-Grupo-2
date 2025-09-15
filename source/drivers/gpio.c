@@ -141,6 +141,7 @@ void gpioSetSlewRate(pin_t pin, bool slewRateLow)
 
 void PortX_IRQImpl(uint8_t portNumber)
 {
+	gpioWrite(PORT_ISR, HIGH);
 	static PORT_Type * const portBase[] = PORT_BASE_PTRS;
 	uint32_t ISFR = portBase[portNumber]->ISFR;
 	uint8_t contador = 0;
@@ -158,6 +159,7 @@ void PortX_IRQImpl(uint8_t portNumber)
 	portBase[portNumber]->ISFR = 1<<contador;
 	CallbackAndState* p = &callbackMatrix[portNumber*32 + contador];
 	p->pCallback(p->user_data);
+	gpioWrite(PORT_ISR, LOW);
 }
 
 __ISR__ PORTA_IRQHandler(void)

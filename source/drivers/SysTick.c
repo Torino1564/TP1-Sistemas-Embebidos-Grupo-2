@@ -8,6 +8,7 @@
 
 #include "SysTick.h"
 #include "hardware.h"
+#include "gpio.h"
 
 #define FREQ2TICKS(x) (__CORE_CLOCK__/(x)) - 1
 
@@ -37,5 +38,7 @@ bool SysTick_Init (void (*funcallback)(void), uint64_t freqHz)
 
 __ISR__ SysTick_Handler()
 {
+	gpioWrite(SYSTICK_ISR, HIGH);
 	sysTickCallback();
+	gpioWrite(SYSTICK_ISR, LOW);
 }

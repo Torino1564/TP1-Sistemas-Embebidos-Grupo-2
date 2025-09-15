@@ -96,6 +96,13 @@ void App_Init (void)
 	gpioWrite(PIN_LED_GREEN, HIGH);
 	gpioWrite(PIN_LED_BLUE, HIGH);
 
+	// pines de salida testpoint para las interrupciones
+	gpioMode(SYSTICK_ISR, OUTPUT);
+	gpioMode(PORT_ISR, OUTPUT);
+
+	gpioWrite(PORT_ISR, LOW);
+	gpioWrite(SYSTICK_ISR, LOW);
+
 	ClearInputVariables();
 
 	WriteDisplay("Ingrese ID");
