@@ -26,7 +26,7 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := Tp1
+BUILD_ARTIFACT_NAME := TP1-Sistemas-Embebidos-Grupo-2
 BUILD_ARTIFACT_EXTENSION := axf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
@@ -38,24 +38,24 @@ all:
 	+@$(MAKE) --no-print-directory main-build && $(MAKE) --no-print-directory post-build
 
 # Main-build Target
-main-build: Tp1.axf
+main-build: TP1-Sistemas-Embebidos-Grupo-2.axf
 
 # Tool invocations
-Tp1.axf: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
+TP1-Sistemas-Embebidos-Grupo-2.axf: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -Xlinker -Map="Tp1.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -T Tp1_Debug.ld -o "Tp1.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -Xlinker -Map="TP1-Sistemas-Embebidos-Grupo-2.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -T TP1-Sistemas-Embebidos-Grupo-2_Debug.ld -o "TP1-Sistemas-Embebidos-Grupo-2.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) Tp1.axf
+	-$(RM) TP1-Sistemas-Embebidos-Grupo-2.axf
 	-@echo ' '
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "Tp1.axf"; # arm-none-eabi-objcopy -v -O binary "Tp1.axf" "Tp1.bin" ; # checksum -p MK64FN1M0xxx12 -d "Tp1.bin";
+	-arm-none-eabi-size "TP1-Sistemas-Embebidos-Grupo-2.axf"; # arm-none-eabi-objcopy -v -O binary "TP1-Sistemas-Embebidos-Grupo-2.axf" "TP1-Sistemas-Embebidos-Grupo-2.bin" ; # checksum -p MK64FN1M0xxx12 -d "TP1-Sistemas-Embebidos-Grupo-2.bin";
 	-@echo ' '
 
 .PHONY: all clean dependents main-build post-build

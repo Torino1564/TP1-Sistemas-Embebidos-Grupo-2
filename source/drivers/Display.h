@@ -34,5 +34,7 @@ void DisplaySetCarruselTime(uint16_t miliSecs);		// settine carrusel time
  */
 bool DisplaySetBrightnessLevel(uint8_t level);		// setting brightness level
 
+uint8_t DisplayGetBrightnessLevel(void);
+
 
 #endif /* DRIVERS_DISPLAY_H_ */

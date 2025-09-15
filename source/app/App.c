@@ -89,10 +89,12 @@ void App_Init (void)
 	memset((void*)input_string, 0, MAX_STRING_LENGHT);
 
 	gpioMode(PIN_LED_GREEN, OUTPUT);
+	gpioMode(PIN_LED_RED, OUTPUT);
+	gpioMode(PIN_LED_BLUE, OUTPUT);
 
 	gpioWrite(PIN_LED_RED, HIGH);
-	gpioWrite(PIN_LED_BLUE, HIGH);
 	gpioWrite(PIN_LED_GREEN, HIGH);
+	gpioWrite(PIN_LED_BLUE, HIGH);
 
 	ClearInputVariables();
 
@@ -107,6 +109,7 @@ void App_Run (void)
 
 void State_Idle()
 {
+	stateMachine.pMenuCalledFrom = &State_Idle;
 	if (EnteringData())
 	{
 		if(IDSentinel(input_string))
@@ -114,6 +117,7 @@ void State_Idle()
 			WriteDisplay("valid id");
 			stateMachine.validID = 1;
 			strcpy(id_string, input_string);
+			gpioWrite(PIN_LED_BLUE, LOW);
 		}
 		else // si es invalido sigo en el mismo state idle
 		{
@@ -130,18 +134,27 @@ void State_Idle()
 
 void State_EnteringPin()
 {
+	gpioWrite(PIN_LED_RED, HIGH);
+	stateMachine.pMenuCalledFrom = &State_EnteringPin;
 	if (EnteringData())
 	{
 		if(Alohomora(id_string, input_string))
 		{
-			WriteDisplay("valid pin");
+			WriteDisplay("open");
 			stateMachine.validPIN = 1;
+			gpioWrite(PIN_LED_BLUE, HIGH);
 			strcpy(pin_string, input_string);
 		}
 		else
 		{
 			WriteDisplay("invalid pin");
 			ClearInputVariables();
+			stateMachine.pStateAfterCooldownFunc = &State_EnteringPin;
+			stateMachine.pStateFunc = &State_Cooldown;
+			stateMachine.cooldownTicks = MS_TO_TICKS(3000);
+			gpioWrite(PIN_LED_RED, LOW);
+			gpioWrite(PIN_LED_BLUE, HIGH);
+			stateMachine.cooldownStartTime = Now();
 		}
 	}
 	if (stateMachine.validPIN)
@@ -152,6 +165,7 @@ void State_EnteringPin()
 		gpioWrite(PIN_LED_GREEN, LOW);
 		stateMachine.cooldownStartTime = Now();
 	}
+
 }
 
 void State_Open()
@@ -193,11 +207,13 @@ void State_UserMenu()
 		if(turnDir && stateMachine.menuState < BRIGHTNESS)
 		{
 			// derecha
+			WriteDisplay("Brillo");
 			stateMachine.menuState++;
 		}
 		else if(!turnDir && stateMachine.menuState > CANCEL)
 		{
 			// izquierda
+			WriteDisplay("Cancel");
 			stateMachine.menuState--;
 		}
 	}
@@ -211,12 +227,19 @@ void State_UserMenu()
 			switch(stateMachine.menuState)
 			{
 			case CANCEL: 		// cancelar
-				WriteDisplay("Cancelar");
+				//WriteDisplay("Cancelar");
 				stateMachine.pStateFunc = &State_Idle;
+				ClearInputVariables();
+				WriteDisplay("Ingrese Id");
+				stateMachine.validID = false;
+				stateMachine.validPIN = false;
+				gpioWrite(PIN_LED_BLUE, HIGH);
+				MagBandEnableInt(true);
 				break;
 			case BRIGHTNESS: 	// brillo
 				WriteDisplay("Brillo");
 				stateMachine.pStateFunc = &State_BrightnessMenu;
+				stateMachine.brightnessLevel = DisplayGetBrightnessLevel();
 			default:
 				break;
 			}
@@ -224,10 +247,12 @@ void State_UserMenu()
 		else if(buttonData == BUTTON_HELD || buttonData == BUTTON_LONG_HELD)
 		{
 			stateMachine.pStateFunc = stateMachine.pMenuCalledFrom;
+			MagBandEnableInt(true);
 			stateMachine.pMenuCalledFrom = NULL;
 		}
 		stateMachine.menuState = CANCEL;
 	}
+
 
 }
 
@@ -251,6 +276,7 @@ void State_BrightnessMenu()
 	if (buttonStatus)
 	{
 		stateMachine.pStateFunc = stateMachine.pMenuCalledFrom;
+		MagBandEnableInt(true);
 	}
 }
 
@@ -300,7 +326,43 @@ bool EnteringData(void)
 					}
 				}
 			}
-			WriteDisplay(input_string);
+			if(stateMachine.pStateFunc == &State_EnteringPin)
+			{
+
+				if(currentDigit >= 4)
+				{
+					char tempString[5] = {1,1,1,input_string[currentDigit],0};
+					WriteDisplay(tempString);
+				}
+				else
+				{
+					char tempString[5] = {0,0,0,0,0};
+					for(int i = 0 ; i < 4 ; i++)
+					{
+						if(i < currentDigit)
+						{
+							tempString[i] = 1; // nan
+						}
+						else
+						{
+							tempString[i] = input_string[currentDigit];
+							break;
+						}
+					}
+					WriteDisplay(tempString);
+				}
+			}
+			else
+			{
+				if(currentDigit >= 4)
+				{
+					WriteDisplay(input_string+currentDigit-3);
+				}
+				else
+				{
+					WriteDisplay(input_string);
+				}
+			}
 		}
 		else if (buttonStatus)// BUTTON
 		{
@@ -309,7 +371,43 @@ bool EnteringData(void)
 			{
 				strncat(input_string, &currentNum, 1);
 				currentDigit++;
-				WriteDisplay(input_string);
+				if(stateMachine.pStateFunc == &State_EnteringPin)
+				{
+
+					if(currentDigit >= 4)
+					{
+						char tempString[5] = {1,1,1,input_string[currentDigit],0};
+						WriteDisplay(tempString);
+					}
+					else
+					{
+						char tempString[5] = {0,0,0,0,0};
+						for(int i = 0 ; i < 4 ; i++)
+						{
+							if(i < currentDigit)
+							{
+								tempString[i] = 1; // nan
+							}
+							else
+							{
+								tempString[i] = input_string[currentDigit];
+								break;
+							}
+						}
+						WriteDisplay(tempString);
+					}
+				}
+				else
+				{
+					if(currentDigit >= 4)
+					{
+						WriteDisplay(input_string+currentDigit-3);
+					}
+					else
+					{
+						WriteDisplay(input_string);
+					}
+				}
 			}
 			else if(buttonData == BUTTON_HELD)
 			{
@@ -319,8 +417,10 @@ bool EnteringData(void)
 			else if(buttonData == BUTTON_LONG_HELD)
 			{
 				stateMachine.pStateFunc = &State_UserMenu;
+				WriteDisplay("Menu");
 			}
 		}
+
 	}
 	else if(cardStatus)
 	{

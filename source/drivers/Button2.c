@@ -73,7 +73,6 @@ void DebouncingISR(void* user_data)
 		else
 		{
 			pButton->state = BUTTON_PRESSED;
-			gpioToggle(PIN_LED_RED);
 		}
 	}
 

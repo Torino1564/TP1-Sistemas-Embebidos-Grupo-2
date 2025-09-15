@@ -214,29 +214,51 @@ void DisplaySetCarruselTime(uint16_t miliSecs)
 	carruselTicks = MS_TO_TICKS(miliSecs)/MS_TO_TICKS(MS_PER_DIGIT/(float)4);
 }
 
+uint8_t DisplayGetBrightnessLevel(void)
+{
+	switch (brightnessLevel)
+	{
+	case 5:
+		return 1;
+		break;
+	case 3:
+		return 2;
+		break;
+	case 1:
+		return 3;
+		break;
+	default:
+		return 2;
+		break;
+	}
+}
+
 bool DisplaySetBrightnessLevel(uint8_t level)
 {
 	switch (level){
 	case 1:
-		DisplaySetLeds(3, true);
-		DisplaySetLeds(2, true);
-		DisplaySetLeds(1, true);
-		break;
-	case 2:
+		brightnessLevel = 5;
 		DisplaySetLeds(3, true);
 		DisplaySetLeds(2, false);
 		DisplaySetLeds(1, false);
 		break;
-	case 3:
+	case 2:
+		brightnessLevel = 3;
 		DisplaySetLeds(3, true);
 		DisplaySetLeds(2, true);
 		DisplaySetLeds(1, false);
+		break;
+	case 3:
+		brightnessLevel = 1;
+		DisplaySetLeds(3, true);
+		DisplaySetLeds(2, true);
+		DisplaySetLeds(1, true);
 		break;
 	default:
 		return false;
 	}
 
-	brightnessLevel = level;
+
 	return true;
 }
 

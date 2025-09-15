@@ -150,7 +150,6 @@ bool getEncoderDir()
 						global_encoder.turns--;
 					}
 				}
-				gpioToggle(PIN_LED_BLUE);
 				global_encoder.newData = 1;
 				global_encoder.ticks = 0;
 			}
@@ -215,7 +214,6 @@ bool getEncoderDir()
 						global_encoder.turns--;
 					}
 				}
-				gpioToggle(PIN_LED_RED);
 				global_encoder.newData = 1;
 				global_encoder.ticks = 0;
 			}
