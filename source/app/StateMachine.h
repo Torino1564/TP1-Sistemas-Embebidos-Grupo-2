@@ -22,6 +22,7 @@ enum States
 	PIN,
 	OPEN,
 	COOLDOWN,
+	USER_MENU,
 	CHANGE_PIN,
 	ADMIN
 };

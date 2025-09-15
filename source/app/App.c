@@ -23,6 +23,12 @@
 //cositas nuevas
 #include "Segurity.h"
 
+enum {
+	CANCEL,
+	BRIGHTNESS,
+	RETURN
+};
+
 /*******************************************************************************
  *                                MACROS
  ******************************************************************************/
@@ -131,6 +137,67 @@ void App_Run (void)
 		WriteDisplay("Ingrese ID");
 
 		break;
+
+	case USER_MENU:
+
+		static uint8_t menuState = CANCEL;
+		static uint8_t turnDir;
+		bool encoderStatus = readEncoderStatus();
+		bool buttonStatus = readButtonStatus(buttonEncoder);
+		uint8_t buttonData = readButtonData(buttonEncoder);
+		MagBandEnableInt(false);
+		if(encoderStatus || buttonStatus)
+		{
+			if(encoderStatus)
+			{
+				// encoder
+				turnDir = readEncoderData();
+				if(turnDir && menuState < RETURN)
+				{
+					// derecha
+					menuState++;
+				}
+				else if(!turnDir && menuState > CANCEL)
+				{
+					// izquierda
+					menuState--;
+				}
+			}
+			else
+			{
+				// boton
+				if(buttonData == BUTTON_PRESSED)
+				{
+
+				}
+				else if(buttonData == BUTTON_HELD)
+				{
+
+				}
+				else if(buttonData == BUTTON_LONG_HELD)
+				{
+
+				}
+			}
+
+
+		}
+
+
+		switch(menuState)
+		{
+		case CANCEL: 		// cancelar
+
+			break;
+		case BRIGHTNESS: 	// brillo
+
+			break;
+		case RETURN: 		// vuelvo
+
+			break;
+		}
+
+		break;
 	case COOLDOWN:
 		if (stateMachine.cooldownTicks >= stateMachine.cooldownTime)
 		{
@@ -151,7 +218,6 @@ void EnteringData(void)
 	bool encoderStatus = readEncoderStatus();
 	bool buttonStatus = readButtonStatus(buttonEncoder);
 	bool cardStatus = MagBandGetStatus();
-	uint8_t buttonData = readButtonData(buttonEncoder);
 
 	if (encoderStatus || buttonStatus) // if encoder or button new data
 	{
@@ -196,6 +262,7 @@ void EnteringData(void)
 		}
 		else if (buttonStatus)// BUTTON
 		{
+			uint8_t buttonData = readButtonData(buttonEncoder);
 			if(buttonData == BUTTON_PRESSED)
 			{
 				strncat(input_string, &currentNum, 1);
